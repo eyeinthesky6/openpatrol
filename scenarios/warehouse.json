@@ -1,0 +1,33 @@
+{
+  "site_id": "demo-warehouse",
+  "name": "Warehouse 7 — Night Patrol",
+  "map": {"width": 100, "height": 62},
+  "waypoints": [
+    {"id": "dock", "x": 10, "y": 52, "dwell_ticks": 3},
+    {"id": "loading-bay", "x": 18, "y": 14, "dwell_ticks": 4},
+    {"id": "cage", "x": 52, "y": 12, "dwell_ticks": 4},
+    {"id": "fire-exit", "x": 86, "y": 18, "dwell_ticks": 4},
+    {"id": "aisle-4", "x": 78, "y": 48, "dwell_ticks": 3},
+    {"id": "charging-zone", "x": 42, "y": 50, "dwell_ticks": 3}
+  ],
+  "events": [
+    {
+      "id": "person-after-hours",
+      "waypoint_id": "cage",
+      "event_type": "person",
+      "title": "Person detected in restricted cage",
+      "severity": "high",
+      "confidence": 0.94,
+      "cooldown_laps": 2
+    },
+    {
+      "id": "blocked-exit",
+      "waypoint_id": "fire-exit",
+      "event_type": "scene-change",
+      "title": "Object blocking fire exit",
+      "severity": "medium",
+      "confidence": 0.88,
+      "cooldown_laps": 3
+    }
+  ]
+}
