@@ -40,6 +40,8 @@ Run all verification with `./scripts/check.sh` or `python3 -m unittest discover 
 | `OPENPATROL_SCENARIO` | `./scenarios/warehouse.json` | Simulation scenario |
 | `OPENPATROL_TICK_SECONDS` | `0.4` | Simulation tick interval |
 | `OPENPATROL_INGEST_TOKEN` | unset | Bearer token enabling `/api/v1/detections` |
+| `OPENPATROL_RETENTION_DAYS` | `30` | Maximum local evidence age |
+| `OPENPATROL_MAX_RECORDS` | `5000` | Hard cap on local evidence receipts |
 
 The external ingestion body requires `id`, `event_type`, `title`, `severity` and `confidence`. See [`docs/integrations.md`](docs/integrations.md) and [`docs/api.md`](docs/api.md).
 

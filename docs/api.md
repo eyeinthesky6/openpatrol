@@ -10,5 +10,6 @@ All mutation bodies use `application/json`. Errors have the shape `{"error":{"co
 - `POST /api/v1/incidents/{event_id}/review` — disposition `confirmed`, `dismissed` or `escalated`, optional note and actor
 - `POST /api/v1/detections` — authenticated normalized external detection; requires `Authorization: Bearer $OPENPATROL_INGEST_TOKEN`
 - `GET /metrics` — Prometheus text exposition
+- `GET /api/v1/audit/verify` — verify the operational audit hash chain
 
 `/api/state`, `/api/health`, `/api/patrol` and the legacy review route remain compatible during the v1 transition.

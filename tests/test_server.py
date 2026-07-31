@@ -38,6 +38,7 @@ class ServerTest(unittest.TestCase):
         status, receipt, _=self.request("/api/v1/detections",event,"secret")
         self.assertEqual(201,status); self.assertEqual("test-camera",receipt["detection"]["source"])
         self.assertTrue(self.request(f"/api/v1/incidents/{receipt['event_id']}/verify")[1]["valid"])
+        self.assertTrue(self.request("/api/v1/audit/verify")[1]["valid"])
 
     def test_ingest_requires_token(self):
         with self.assertRaises(urllib.error.HTTPError) as caught:

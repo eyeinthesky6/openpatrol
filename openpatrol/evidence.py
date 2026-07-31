@@ -4,7 +4,7 @@ import hashlib
 import json
 import threading
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 
@@ -20,10 +20,12 @@ def _digest(payload: dict[str, Any]) -> str:
 class EvidenceStore:
     """Atomic, tamper-evident JSON receipts with an append-only review trail."""
 
-    def __init__(self, directory: Path):
+    def __init__(self, directory: Path, *, retention_days: int = 30, max_records: int = 5000):
         self.directory = directory
         self.directory.mkdir(parents=True, exist_ok=True)
         self._lock = threading.RLock()
+        self.retention_days = max(1, retention_days)
+        self.max_records = max(10, max_records)
 
     def create(self, *, robot_id: str, site_id: str, lap: int, waypoint: dict[str, Any], event: dict[str, Any], source: str = "synthetic-scenario") -> dict[str, Any]:
         now = datetime.now(timezone.utc)
@@ -40,7 +42,7 @@ class EvidenceStore:
                 "type": event["event_type"], "title": event["title"],
                 "severity": event["severity"], "confidence": event["confidence"], "source": source,
             },
-            "media": {"kind": "simulation_snapshot", "reference": f"snapshot://{event_id}"},
+            "media": {"kind": "simulation_snapshot" if source == "synthetic-scenario" else "external_reference", "reference": f"snapshot://{event_id}" if source == "synthetic-scenario" else None},
             "software": {"openpatrol": "0.2.0", "detector": "synthetic-v1"},
         }
         receipt = {
@@ -51,6 +53,7 @@ class EvidenceStore:
         }
         with self._lock:
             self._write(receipt)
+            self.prune()
         return receipt
 
     def update_review(self, event_id: str, disposition: str, note: str = "", actor: str = "local-operator") -> dict[str, Any]:
@@ -92,6 +95,19 @@ class EvidenceStore:
         with self._lock:
             receipts = [json.loads(path.read_text(encoding="utf-8")) for path in self.directory.glob("evt-*.json")]
         return sorted(receipts, key=lambda item: item["captured_at"], reverse=True)
+
+    def prune(self) -> int:
+        """Apply bounded local retention. Reviewed and pending receipts follow the same declared policy."""
+        with self._lock:
+            paths = sorted(self.directory.glob("evt-*.json"), key=lambda path: path.stat().st_mtime, reverse=True)
+            cutoff = datetime.now(timezone.utc) - timedelta(days=self.retention_days)
+            removed = 0
+            for index, path in enumerate(paths):
+                try: captured = datetime.fromisoformat(json.loads(path.read_text(encoding="utf-8"))["captured_at"])
+                except (KeyError, ValueError, json.JSONDecodeError): captured = datetime.min.replace(tzinfo=timezone.utc)
+                if index >= self.max_records or captured < cutoff:
+                    path.unlink(); removed += 1
+            return removed
 
     def _write(self, receipt: dict[str, Any]) -> None:
         path = self.directory / f"{receipt['event_id']}.json"

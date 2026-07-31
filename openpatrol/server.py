@@ -10,6 +10,7 @@ from pathlib import Path
 from urllib.parse import urlparse
 
 from .evidence import EvidenceStore
+from .audit import AuditLog
 from .scenario import load_scenario
 from .simulator import PatrolSimulator
 
@@ -21,6 +22,7 @@ MAX_BODY = 64 * 1024
 class AppHandler(SimpleHTTPRequestHandler):
     simulator: PatrolSimulator
     ingest_token = ""
+    audit: AuditLog
     started_at = time.monotonic()
 
     def __init__(self, *args, **kwargs):
@@ -41,6 +43,8 @@ class AppHandler(SimpleHTTPRequestHandler):
             return self._json({"status": "ok", "mode": "simulation", "local_only": True, "uptime_seconds": round(time.monotonic() - self.started_at, 1)})
         if path == "/api/v1/incidents":
             return self._json({"incidents": self.simulator.evidence.list()})
+        if path == "/api/v1/audit/verify":
+            return self._json(self.audit.verify())
         if path.startswith("/api/v1/incidents/") and path.endswith("/verify"):
             event_id = path.split("/")[4]
             try: return self._json(self.simulator.evidence.verify(event_id))
@@ -60,16 +64,20 @@ class AppHandler(SimpleHTTPRequestHandler):
             if path in {"/api/patrol", "/api/v1/commands"}:
                 action = body.get("action") or ("resume" if body.get("status") == "patrolling" else "pause")
                 self.simulator.command(str(action))
+                self.audit.append("robot.command", actor=str(body.get("actor", "local-operator")), details={"command": action, "result": self.simulator.status})
                 return self._json(self.simulator.state())
             if (path.startswith("/api/incidents/") or path.startswith("/api/v1/incidents/")) and path.endswith("/review"):
                 event_id = path.split("/")[-2]
                 receipt = self.simulator.evidence.update_review(event_id, str(body.get("disposition", "")), str(body.get("note", "")), str(body.get("actor", "local-operator")))
+                self.audit.append("incident.review", actor=str(body.get("actor", "local-operator")), details={"event_id": event_id, "disposition": body.get("disposition")})
                 return self._json(receipt)
             if path == "/api/v1/detections":
                 if not self.ingest_token or self.headers.get("Authorization") != f"Bearer {self.ingest_token}":
                     return self._error(HTTPStatus.UNAUTHORIZED, "unauthorized", "A configured ingest token is required")
                 event = self._validate_detection(body)
-                return self._json(self.simulator.ingest_detection(event), HTTPStatus.CREATED)
+                receipt = self.simulator.ingest_detection(event)
+                self.audit.append("detection.ingest", actor="detector-adapter", details={"event_id": receipt["event_id"], "source": event.get("source", "external")})
+                return self._json(receipt, HTTPStatus.CREATED)
             return self._error(HTTPStatus.NOT_FOUND, "not_found", "API route not found")
         except json.JSONDecodeError:
             return self._error(HTTPStatus.BAD_REQUEST, "invalid_json", "Request body must be valid JSON")
@@ -110,8 +118,9 @@ class AppHandler(SimpleHTTPRequestHandler):
 def create_server(host="127.0.0.1", port=8765, *, data=None, scenario=None, ingest_token=""):
     scenario_path = Path(scenario or os.getenv("OPENPATROL_SCENARIO", ROOT / "scenarios" / "warehouse.json"))
     data_path = Path(data or os.getenv("OPENPATROL_DATA", ROOT / "runtime"))
-    simulator = PatrolSimulator(load_scenario(scenario_path), EvidenceStore(data_path / "evidence"))
-    handler = type("ConfiguredAppHandler", (AppHandler,), {"simulator": simulator, "ingest_token": ingest_token or os.getenv("OPENPATROL_INGEST_TOKEN", ""), "started_at": time.monotonic()})
+    evidence = EvidenceStore(data_path / "evidence", retention_days=int(os.getenv("OPENPATROL_RETENTION_DAYS", "30")), max_records=int(os.getenv("OPENPATROL_MAX_RECORDS", "5000")))
+    simulator = PatrolSimulator(load_scenario(scenario_path), evidence)
+    handler = type("ConfiguredAppHandler", (AppHandler,), {"simulator": simulator, "audit": AuditLog(data_path / "audit.jsonl"), "ingest_token": ingest_token or os.getenv("OPENPATROL_INGEST_TOKEN", ""), "started_at": time.monotonic()})
     return ThreadingHTTPServer((host, port), handler), simulator
 
 
