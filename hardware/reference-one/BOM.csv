@@ -1,0 +1,15 @@
+subsystem,item,minimum_spec,quantity,estimated_inr,notes
+structure,Base plates,6 mm aluminium or validated printed composite,2,6000,Use CAD source and verify stiffness
+drive,Encoder gear motor,24 V 100-150 RPM metal gearbox,2,6000,Select matched pair with quadrature encoders
+drive,Wheels,150 mm non-marking rubber,2,2000,Rated for total mass
+drive,Rear caster,75 mm industrial swivel,1,900,Avoid small furniture casters
+control,Motor controller,Dual channel 24 V with current limit and hardware watchdog,1,6500,Must stop without Linux commands
+compute,Raspberry Pi 5,8 GB with active cooling,1,14000,Use endurance storage
+navigation,2D LiDAR,ROS 2 supported 8 m minimum range,1,12000,Validate glass and dark surfaces
+sensing,Low-light camera,1080p UVC or RTSP,1,4500,No default face recognition
+power,LiFePO4 battery,24 V 10 Ah with certified BMS,1,12000,Qualified supplier only
+power,DC-DC converter,24 V to 5 V 8 A isolated/protected,1,2500,Fused input
+safety,E-stop,Normally closed twist-release dual contact,1,1800,Cuts drive-enable circuit
+safety,Bumper switches,Normally closed industrial microswitch,4,1200,Series safety input
+safety,Beacon,Visible 24 V status lamp,1,800,On whenever drive enabled
+fabrication,Harness/fasteners,Crimped labelled wiring fuse enclosure guards,1,7000,No loose Dupont wires

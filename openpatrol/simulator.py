@@ -24,6 +24,9 @@ class PatrolSimulator:
 
     def tick(self) -> None:
         with self._lock:
+            if self.status == "docked":
+                self.battery = min(100.0, self.battery + 0.5)
+                return
             if self.status not in {"patrolling", "returning"}:
                 return
             self.tick_count += 1
@@ -63,9 +66,9 @@ class PatrolSimulator:
             elif action == "pause" and self.status == "patrolling":
                 self.status = "paused"
             elif action == "resume" and self.status in {"paused", "docked"}:
-                was_docked = self.status == "docked"
+                if self.status == "docked" and self.battery <= self.LOW_BATTERY + 5:
+                    raise ValueError("battery reserve is too low to leave the dock")
                 self.status, self.fault = "patrolling", None
-                if was_docked: self.battery = 100.0
             elif action == "return" and self.status not in {"estopped", "fault"}:
                 self.status, self.target_index, self.dwell_remaining = "returning", 0, 0
             else:
@@ -77,7 +80,10 @@ class PatrolSimulator:
     def ingest_detection(self, event: dict[str, Any]) -> dict[str, Any]:
         with self._lock:
             waypoint = min(self.scenario.waypoints, key=lambda item: math.hypot(item.x - self.x, item.y - self.y))
-            return self.evidence.create(robot_id=self.robot_id, site_id=self.scenario.site_id, lap=self.lap, waypoint=asdict(waypoint), event=event, source=str(event.get("source", "external")))
+            media = None
+            if event.get("media_reference"):
+                media = {"kind": "external_reference", "reference": str(event["media_reference"])[:1000], "sha256": event.get("media_sha256")}
+            return self.evidence.create(robot_id=self.robot_id, site_id=self.scenario.site_id, lap=self.lap, waypoint=asdict(waypoint), event=event, source=str(event.get("source", "external")), media=media)
 
     def _detect_at(self, waypoint_id: str | None) -> None:
         if waypoint_id is None:

@@ -26,9 +26,13 @@ docker compose up --build
 - responsive local operator UI, incident filters and review dispositions
 - versioned JSON API, health endpoint, Prometheus-compatible metrics and security headers
 - ROS 2 mobility contract and Frigate integration recipe at documented adapter boundaries
+- installable ROS 2 Jazzy safety-adapter package and optional Frigate MQTT bridge
+- parametric reference-base/payload CAD, India-oriented BOM, stop-chain wiring and physical validation protocol
 - unit, state-machine, evidence-tamper and live HTTP integration tests
 
 Run all verification with `./scripts/check.sh` or `python3 -m unittest discover -s tests -v`.
+
+Create a reproducible source archive with `./scripts/release.sh`.
 
 ## Configuration
 
@@ -44,6 +48,10 @@ Run all verification with `./scripts/check.sh` or `python3 -m unittest discover 
 | `OPENPATROL_MAX_RECORDS` | `5000` | Hard cap on local evidence receipts |
 
 The external ingestion body requires `id`, `event_type`, `title`, `severity` and `confidence`. See [`docs/integrations.md`](docs/integrations.md) and [`docs/api.md`](docs/api.md).
+
+Repository map: `hardware/` contains editable mechanical source and BOM; `ros2/` contains the ROS 2 Jazzy adapter; `deploy/frigate/` contains an integration profile; `schemas/` contains portable JSON contracts; `docs/product-requirements.md` tracks every product-note claim.
+
+For day-to-day use see [`docs/operator-guide.md`](docs/operator-guide.md). Physical builders must execute [`docs/safety-validation.md`](docs/safety-validation.md) and publish measured results; an unchecked box is not a passed safety test.
 
 ## Project boundaries
 

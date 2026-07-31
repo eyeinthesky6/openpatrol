@@ -10,15 +10,15 @@ This matrix prevents roadmap claims from being mistaken for shipped capability.
 | Operator and detector audit | Implemented | Hash-chained JSONL audit and verification endpoint |
 | Local-only default and bounded retention | Implemented | Loopback bind, no cloud dependency, configurable age/count limits |
 | Health, battery and incident telemetry | Implemented | State API, health endpoint and Prometheus metrics |
-| Mobility adapter specification | Contract complete | ROS 2 topic, watchdog and physical E-stop contract; hardware conformance suite remains Phase 1 |
-| Frigate integration | Contract complete | Authenticated normalized detection endpoint; real Frigate deployment remains Phase 2 |
-| Live video and evidence clips | Not claimed | Needs camera/Frigate and signed media; simulation uses labeled synthetic snapshots |
+| Mobility adapter specification | Software complete / hardware unverified | Installable ROS 2 adapter, velocity limits and watchdog; physical conformance remains Phase 1 |
+| Frigate integration | Software complete / deployment unverified | MQTT adapter, authenticated detection endpoint and example profile |
+| Live video and evidence clips | Integration supplied / hardware unverified | Frigate clip references and optional media digest; camera and signed-media test remain physical deployment work |
 | Physical stop chain | Not claimed | Requires motor controller, normally-closed E-stop and crash/lost-link testing |
 | SLAM/Nav2 autonomous patrol | Not claimed | Requires ROS 2 reference chassis or simulator package |
 | Docking and charging | Simulated only | Product state exists; physical gate is ≥95% successful docks over 100 patrol hours |
-| Original CAD, wiring and BOM | Not started | Begin only after reference chassis selection and license/provenance review |
+| Original CAD, wiring and BOM | Parametric reference supplied | OpenSCAD base/payload source, BOM and stop-chain spec; fabrication dimensions require selected supplier parts |
 | Privacy masking and encryption at rest | Not claimed | Required before real-person or sensitive-site recording |
-| Reproducibility by an external builder | Pending | Release gate: independent clean-machine simulation reproduction |
+| Reproducibility by an external builder | Package complete / independent result pending | One-command checks and deterministic source archive; external builder must record result |
 
 ## Next build order
 

@@ -1,0 +1,21 @@
+mqtt:
+  enabled: true
+  host: mqtt
+cameras:
+  patrol_camera:
+    ffmpeg:
+      inputs:
+        - path: rtsp://CHANGE_ME
+          roles: [detect, record]
+    detect:
+      width: 1280
+      height: 720
+    objects:
+      track: [person, car]
+record:
+  enabled: true
+  retain:
+    days: 1
+  alerts:
+    retain:
+      days: 7

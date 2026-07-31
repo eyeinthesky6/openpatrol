@@ -27,7 +27,7 @@ class EvidenceStore:
         self.retention_days = max(1, retention_days)
         self.max_records = max(10, max_records)
 
-    def create(self, *, robot_id: str, site_id: str, lap: int, waypoint: dict[str, Any], event: dict[str, Any], source: str = "synthetic-scenario") -> dict[str, Any]:
+    def create(self, *, robot_id: str, site_id: str, lap: int, waypoint: dict[str, Any], event: dict[str, Any], source: str = "synthetic-scenario", media: dict[str, Any] | None = None) -> dict[str, Any]:
         now = datetime.now(timezone.utc)
         event_id = f"evt-{now.strftime('%Y%m%dT%H%M%S')}-{event['id']}-{uuid.uuid4().hex[:8]}"
         capture = {
@@ -42,7 +42,7 @@ class EvidenceStore:
                 "type": event["event_type"], "title": event["title"],
                 "severity": event["severity"], "confidence": event["confidence"], "source": source,
             },
-            "media": {"kind": "simulation_snapshot" if source == "synthetic-scenario" else "external_reference", "reference": f"snapshot://{event_id}" if source == "synthetic-scenario" else None},
+            "media": media or {"kind": "simulation_snapshot" if source == "synthetic-scenario" else "external_reference", "reference": f"snapshot://{event_id}" if source == "synthetic-scenario" else None, "sha256": None},
             "software": {"openpatrol": "0.2.0", "detector": "synthetic-v1"},
         }
         receipt = {

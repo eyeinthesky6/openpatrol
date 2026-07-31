@@ -7,9 +7,11 @@ license = {text = "Apache-2.0"}
 
 [project.scripts]
 openpatrol = "openpatrol.server:main"
+openpatrol-frigate = "openpatrol.frigate_bridge:main"
 
 [project.optional-dependencies]
 dev = []
+mqtt = ["paho-mqtt>=2.1,<3"]
 
 [tool.setuptools]
 packages = ["openpatrol"]

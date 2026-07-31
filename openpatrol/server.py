@@ -62,7 +62,12 @@ class AppHandler(SimpleHTTPRequestHandler):
         try:
             body = self._body()
             if path in {"/api/patrol", "/api/v1/commands"}:
-                action = body.get("action") or ("resume" if body.get("status") == "patrolling" else "pause")
+                if body.get("action"):
+                    action = body["action"]
+                elif body.get("status") in {"patrolling", "paused"}:
+                    action = "resume" if body["status"] == "patrolling" else "pause"
+                else:
+                    raise ValueError("action is required")
                 self.simulator.command(str(action))
                 self.audit.append("robot.command", actor=str(body.get("actor", "local-operator")), details={"command": action, "result": self.simulator.status})
                 return self._json(self.simulator.state())
@@ -94,6 +99,8 @@ class AppHandler(SimpleHTTPRequestHandler):
         if body["severity"] not in {"low", "medium", "high", "critical"}: raise ValueError("invalid severity")
         confidence = float(body["confidence"])
         if not 0 <= confidence <= 1: raise ValueError("confidence must be between 0 and 1")
+        media_hash = body.get("media_sha256")
+        if media_hash is not None and (len(str(media_hash)) != 64 or any(char not in "0123456789abcdefABCDEF" for char in str(media_hash))): raise ValueError("media_sha256 must be a 64-character hexadecimal digest")
         return {**body, "confidence": confidence}
 
     def _body(self):

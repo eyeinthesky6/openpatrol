@@ -15,6 +15,8 @@ A physical adapter must provide:
 
 The first ROS 2 adapter will map these concepts to standard `geometry_msgs/Twist`, odometry, battery and diagnostics topics. Linorobot2/Nav2 are upstream dependencies, not vendored forks.
 
+The repository now includes the first adapter in `ros2/openpatrol_adapter`. It clamps and times out application velocity commands, but final enforcement remains in the motor controller and normally-closed stop chain.
+
 ## Perception adapter
 
 The simulation emits synthetic detections. A physical deployment may accept events from Frigate over MQTT or a ROS 2 perception node. Every adapter produces a normalized detection with type, confidence, source and optional media reference.

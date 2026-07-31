@@ -41,5 +41,14 @@ class SimulatorTest(unittest.TestCase):
             for _ in range(10): sim.tick()
             self.assertEqual("docked",sim.state()["robot"]["status"])
 
+    def test_dock_charges_gradually_and_enforces_reserve(self):
+        scenario=Scenario("s","test",20,20,(Waypoint("dock",0,0,0),Waypoint("b",2,0,0)),())
+        with tempfile.TemporaryDirectory() as directory:
+            sim=PatrolSimulator(scenario,EvidenceStore(Path(directory))); sim.status="docked"; sim.battery=10
+            sim.tick(); self.assertEqual(10.5,sim.battery)
+            with self.assertRaises(ValueError): sim.command("resume")
+            for _ in range(30): sim.tick()
+            sim.command("resume"); self.assertEqual("patrolling",sim.status)
+
 
 if __name__ == "__main__": unittest.main()

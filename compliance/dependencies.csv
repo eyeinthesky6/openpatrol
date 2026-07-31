@@ -1,0 +1,7 @@
+component,scope,version_policy,license,distribution
+Python,runtime,3.11 or newer,PSF,base image or host
+paho-mqtt,optional Frigate bridge,2.1 to below 3,EPL-2.0 OR BSD-3-Clause,optional Python extra
+ROS 2 Jazzy,optional mobility adapter,Jazzy distribution,mixed package licenses,external ROS installation
+rclpy,optional mobility adapter,Jazzy distribution,Apache-2.0,external ROS installation
+Frigate,optional video service,pin before deployment,MIT,separate container
+Eclipse Mosquitto,optional MQTT service,pin before deployment,EPL-2.0 OR EDL-1.0,separate container

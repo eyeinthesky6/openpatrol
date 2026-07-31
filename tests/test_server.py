@@ -45,5 +45,9 @@ class ServerTest(unittest.TestCase):
             self.request("/api/v1/detections",{})
         self.assertEqual(401,caught.exception.code)
 
+    def test_invalid_legacy_status_is_rejected(self):
+        with self.assertRaises(urllib.error.HTTPError) as caught: self.request("/api/patrol",{"status":"flying"})
+        self.assertEqual(400,caught.exception.code)
+
 
 if __name__ == "__main__": unittest.main()
