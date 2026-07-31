@@ -1,45 +1,50 @@
 # OpenPatrol
 
-OpenPatrol is a mobility-agnostic, local-first patrol and evidence system. This repository starts with a dependency-free simulation that proves the complete product loop:
+OpenPatrol is a mobility-agnostic, local-first patrol and evidence reference system. It ships a working simulation—not a mock screen—that closes the product loop: route execution, detection, tamper-evident evidence, human review, audit history, safety-state controls and observability.
 
-1. a rover follows a route;
-2. a configured scene produces an incident;
-3. the system captures a tamper-evident evidence receipt;
-4. a human reviews and disposes the incident.
+## Quick start
 
-The simulation is intentionally independent of ROS so product logic can be tested anywhere. ROS 2/Nav2, Frigate and physical chassis adapters attach at the boundaries described in `docs/architecture.md`.
-
-## Run
+Requires Python 3.11+ and no third-party runtime packages.
 
 ```bash
 python3 -m openpatrol.server
 ```
 
-Open <http://127.0.0.1:8765>.
+Open <http://127.0.0.1:8765>. For a faster demo: `OPENPATROL_TICK_SECONDS=0.15 python3 -m openpatrol.server`.
 
-To run faster for a demo:
-
-```bash
-OPENPATROL_TICK_SECONDS=0.15 python3 -m openpatrol.server
-```
-
-## Test
+Or run the non-root container:
 
 ```bash
-python3 -m unittest discover -s tests -v
+docker compose up --build
 ```
 
-## Current scope
+## What works
 
-- waypoint patrol and route progress
-- synthetic obstacle/person event generation
-- local evidence receipts with SHA-256 integrity hash
-- incident queue and human dispositions
-- health, battery and local-only operator dashboard
-- JSON scenario format and hardware-adapter contract
+- configurable waypoint patrol with pause, resume, return-to-dock and E-stop simulation states
+- synthetic scenario detections and authenticated external detection ingestion
+- atomic evidence receipts whose immutable capture and append-only review chain can be independently verified
+- responsive local operator UI, incident filters and review dispositions
+- versioned JSON API, health endpoint, Prometheus-compatible metrics and security headers
+- ROS 2 mobility contract and Frigate integration recipe at documented adapter boundaries
+- unit, state-machine, evidence-tamper and live HTTP integration tests
 
-## Safety
+Run all verification with `./scripts/check.sh` or `python3 -m unittest discover -s tests -v`.
 
-This reference project is for sensing and inspection. It explicitly excludes weapons, pursuit, deliberate physical contact and biometric identification.
+## Configuration
 
-Software: Apache-2.0. Original hardware designs, when added, will use CERN-OHL-P-2.0. Documentation: CC BY 4.0.
+| Variable | Default | Purpose |
+|---|---|---|
+| `OPENPATROL_HOST` | `127.0.0.1` | Bind address; container sets `0.0.0.0` |
+| `OPENPATROL_PORT` | `8765` | HTTP port |
+| `OPENPATROL_DATA` | `./runtime` | Persistent local evidence directory |
+| `OPENPATROL_SCENARIO` | `./scenarios/warehouse.json` | Simulation scenario |
+| `OPENPATROL_TICK_SECONDS` | `0.4` | Simulation tick interval |
+| `OPENPATROL_INGEST_TOKEN` | unset | Bearer token enabling `/api/v1/detections` |
+
+The external ingestion body requires `id`, `event_type`, `title`, `severity` and `confidence`. See [`docs/integrations.md`](docs/integrations.md) and [`docs/api.md`](docs/api.md).
+
+## Project boundaries
+
+The included E-stop is a product-state demonstration. A physical robot requires a hardwired power interruption and motor-controller watchdog independent of Linux, Wi-Fi and this UI. OpenPatrol excludes weapons, pursuit, deliberate contact, face recognition and covert monitoring; deploy only with authorization, notices, retention rules and applicable privacy law.
+
+Software is Apache-2.0. Original hardware designs, when added, should use CERN-OHL-P-2.0; documentation may use CC BY 4.0.
