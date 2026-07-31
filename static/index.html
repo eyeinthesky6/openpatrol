@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>OpenPatrol Mission Control</title><link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <header><div><span class="mark">OPENPATROL</span><h1>Mission Control</h1></div><div class="local">● LOCAL ONLY</div></header>
+  <main>
+    <section class="map-card card">
+      <div class="section-head"><div><p class="eyebrow">LIVE PATROL</p><h2 id="site-name">Loading…</h2></div><button id="patrol-toggle">Pause patrol</button></div>
+      <canvas id="map" width="1000" height="620" aria-label="Patrol map"></canvas>
+      <div class="legend"><span><i class="robot-dot"></i> Robot</span><span><i class="route-dot"></i> Patrol route</span><span><i class="event-dot"></i> Inspection point</span></div>
+    </section>
+    <aside>
+      <section class="card metrics"><p class="eyebrow">ROBOT HEALTH</p><div class="metric-grid"><div><span>Status</span><strong id="status">—</strong></div><div><span>Battery</span><strong id="battery">—</strong></div><div><span>Lap</span><strong id="lap">—</strong></div><div><span>Distance</span><strong id="distance">—</strong></div></div></section>
+      <section class="card incidents"><div class="section-head"><div><p class="eyebrow">INCIDENT QUEUE</p><h2>Needs human review</h2></div><span id="incident-count" class="count">0</span></div><div id="incident-list"></div></section>
+    </aside>
+  </main>
+  <dialog id="review-dialog"><form method="dialog"><button class="close" value="cancel">×</button><p class="eyebrow">EVIDENCE RECEIPT</p><h2 id="review-title"></h2><div id="review-body"></div><label>Operator note<textarea id="review-note" rows="3" placeholder="Optional observation"></textarea></label><div class="actions"><button type="button" data-action="dismissed" class="secondary">Dismiss</button><button type="button" data-action="confirmed">Confirm</button><button type="button" data-action="escalated" class="danger">Escalate</button></div></form></dialog>
+  <script src="/app.js"></script>
+</body></html>
