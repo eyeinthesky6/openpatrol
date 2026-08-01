@@ -34,7 +34,10 @@ jobs:
         shell: bash
         run: |
           source /opt/ros/jazzy/setup.bash
+          mkdir -p runtime/ros-ci
           apt-get update
+          rosdep init 2>runtime/ros-ci/rosdep-init.log || true
+          rosdep update 2>&1 | tee runtime/ros-ci/rosdep-update.log
           rosdep install --from-paths ros2 --ignore-src --rosdistro jazzy -r -y
       - name: Build ROS workspace
         shell: bash
