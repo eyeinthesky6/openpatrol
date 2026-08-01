@@ -14,6 +14,9 @@ from .scenario import Scenario
 
 class PatrolSimulator:
     LOW_BATTERY = 18.0
+    ENERGY_PER_METER = 0.018
+    IDLE_DRAIN_PER_TICK = 0.0006
+    RETURN_SAFETY_RESERVE = 5.0
 
     def __init__(self, scenario: Scenario, evidence: EvidenceStore, robot_id: str = "openpatrol-one", state_path: Path | None = None):
         self.scenario, self.evidence, self.robot_id = scenario, evidence, robot_id
@@ -37,11 +40,13 @@ class PatrolSimulator:
             if self.status not in {"patrolling", "returning"}:
                 return
             self.tick_count += 1
-            if self.battery <= self.LOW_BATTERY and self.status == "patrolling":
+            if self.battery <= self.return_energy_required() and self.status == "patrolling":
                 self.status, self.target_index = "returning", 0
             if self.dwell_remaining > 0 and self.status == "patrolling":
                 self.dwell_remaining -= 1
                 self._detect_at(self.current_waypoint)
+                self.battery = max(0.0, self.battery - self.IDLE_DRAIN_PER_TICK)
+                if self.tick_count % 10 == 0: self._persist()
                 return
             target = self.scenario.waypoints[self.target_index]
             dx, dy = target.x - self.x, target.y - self.y
@@ -65,8 +70,15 @@ class PatrolSimulator:
                 self.distance += self.speed
                 moved = self.speed
                 self.current_waypoint = None
-            self.battery = max(5.0, self.battery - moved * 0.018)
+            self.battery = max(0.0, self.battery - moved * self.ENERGY_PER_METER - self.IDLE_DRAIN_PER_TICK)
+            if self.battery == 0 and self.status != "docked":
+                self.status, self.fault = "fault", "battery depleted before dock"
             if self.tick_count % 10 == 0: self._persist()
+
+    def return_energy_required(self) -> float:
+        dock = self.scenario.waypoints[0]
+        travel = math.hypot(dock.x - self.x, dock.y - self.y) * self.ENERGY_PER_METER
+        return min(100.0, max(self.LOW_BATTERY, travel + self.RETURN_SAFETY_RESERVE))
 
     def command(self, action: str) -> None:
         with self._lock:
@@ -91,6 +103,8 @@ class PatrolSimulator:
             self._persist()
 
     def set_status(self, status: str) -> None:
+        if status not in {"patrolling", "paused"}:
+            raise ValueError("status must be patrolling or paused")
         self.command("resume" if status == "patrolling" else "pause")
 
     def ingest_detection(self, event: dict[str, Any]) -> dict[str, Any]:
@@ -116,22 +130,25 @@ class PatrolSimulator:
             target = self.scenario.waypoints[self.target_index]
             return {
                 "api_version": "v1", "mode": "simulation",
-                "robot": {"id": self.robot_id, "x": round(self.x, 2), "y": round(self.y, 2), "status": self.status, "battery": round(self.battery, 1), "lap": self.lap, "target": target.id, "distance": round(self.distance, 1), "fault": self.fault, "estop": self.status == "estopped"},
+                "robot": {"id": self.robot_id, "x": round(self.x, 2), "y": round(self.y, 2), "status": self.status, "battery": round(self.battery, 1), "return_energy_required": round(self.return_energy_required(), 1), "lap": self.lap, "target": target.id, "distance": round(self.distance, 1), "fault": self.fault, "estop": self.status == "estopped"},
                 "site": {"id": self.scenario.site_id, "name": self.scenario.name, "width": self.scenario.width, "height": self.scenario.height, "waypoints": [asdict(item) for item in self.scenario.waypoints]},
                 "incidents": self.evidence.list(),
             }
 
     def _persist(self) -> None:
         if not self.state_path: return
-        payload={"schema_version":1,"x":self.x,"y":self.y,"target_index":self.target_index,"current_waypoint":self.current_waypoint,"dwell_remaining":self.dwell_remaining,"lap":self.lap,"battery":self.battery,"distance":self.distance,"tick_count":self.tick_count,"status":self.status}
+        payload={"schema_version":2,"x":self.x,"y":self.y,"target_index":self.target_index,"current_waypoint":self.current_waypoint,"dwell_remaining":self.dwell_remaining,"lap":self.lap,"battery":self.battery,"distance":self.distance,"tick_count":self.tick_count,"status":self.status,"emitted":self._emitted}
         self.state_path.parent.mkdir(parents=True,exist_ok=True); temp=self.state_path.with_suffix(f".{uuid.uuid4().hex}.tmp"); temp.write_text(json.dumps(payload),encoding="utf-8"); temp.replace(self.state_path)
 
     def _restore(self) -> None:
         if not self.state_path or not self.state_path.exists(): return
         try:
             payload=json.loads(self.state_path.read_text(encoding="utf-8"))
-            if payload.get("schema_version")!=1: return
-            self.x=float(payload["x"]); self.y=float(payload["y"]); self.target_index=int(payload["target_index"])%len(self.scenario.waypoints); self.current_waypoint=payload.get("current_waypoint"); self.dwell_remaining=max(0,int(payload["dwell_remaining"])); self.lap=max(0,int(payload["lap"])); self.battery=max(5.0,min(100.0,float(payload["battery"]))); self.distance=max(0.0,float(payload["distance"])); self.tick_count=max(0,int(payload["tick_count"])); previous=payload.get("status")
+            if payload.get("schema_version") not in {1,2}: return
+            self.x=float(payload["x"]); self.y=float(payload["y"]); self.target_index=int(payload["target_index"])%len(self.scenario.waypoints); self.current_waypoint=payload.get("current_waypoint"); self.dwell_remaining=max(0,int(payload["dwell_remaining"])); self.lap=max(0,int(payload["lap"])); self.battery=max(0.0,min(100.0,float(payload["battery"]))); self.distance=max(0.0,float(payload["distance"])); self.tick_count=max(0,int(payload["tick_count"])); previous=payload.get("status")
+            if not all(math.isfinite(value) for value in (self.x,self.y,self.battery,self.distance)): raise ValueError("runtime telemetry must be finite")
+            emitted=payload.get("emitted",{})
+            if isinstance(emitted,dict): self._emitted={str(key):max(0,int(value)) for key,value in emitted.items()}
             self.status="docked" if previous=="docked" else "paused"; self.fault=None if previous=="docked" else "restart requires operator resume"
         except (OSError,ValueError,TypeError,KeyError,json.JSONDecodeError):
             self.status,self.fault="fault","runtime state could not be restored"

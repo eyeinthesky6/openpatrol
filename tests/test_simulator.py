@@ -1,3 +1,4 @@
+import json
 import tempfile
 import unittest
 from pathlib import Path
@@ -23,6 +24,17 @@ class SimulatorTest(unittest.TestCase):
             sim=PatrolSimulator(scenario,EvidenceStore(Path(directory)))
             sim.set_status("paused"); before=sim.state()["robot"]; sim.tick(); after=sim.state()["robot"]
             self.assertEqual((before["x"],before["y"]),(after["x"],after["y"]))
+            with self.assertRaises(ValueError): sim.set_status("flying")
+
+    def test_restart_preserves_event_cooldown(self):
+        scenario=Scenario("s","test",20,20,(Waypoint("a",0,0,0),Waypoint("b",1,0,0)),(SyntheticEvent("e","b","person","Detected","high",.9,2),))
+        with tempfile.TemporaryDirectory() as directory:
+            path=Path(directory)/"state.json"; evidence=EvidenceStore(Path(directory)/"evidence"); sim=PatrolSimulator(scenario,evidence,state_path=path)
+            for _ in range(8): sim.tick()
+            self.assertEqual(1,len(evidence.list())); sim.command("pause")
+            restored=PatrolSimulator(scenario,evidence,state_path=path); restored.command("resume")
+            for _ in range(8): restored.tick()
+            self.assertEqual(1,len(evidence.list()))
 
     def test_estop_requires_reset_before_resume(self):
         scenario=Scenario("s","test",20,20,(Waypoint("a",0,0,0),Waypoint("b",10,0,1)),())
@@ -50,6 +62,13 @@ class SimulatorTest(unittest.TestCase):
             for _ in range(651): sim.tick()
             sim.command("resume"); self.assertEqual("patrolling",sim.status)
 
+    def test_dwell_consumes_energy_and_return_budget_includes_distance(self):
+        scenario=Scenario("s","test",10000,20,(Waypoint("dock",0,0,2),Waypoint("far",1000,0,0)),())
+        with tempfile.TemporaryDirectory() as directory:
+            sim=PatrolSimulator(scenario,EvidenceStore(Path(directory))); before=sim.battery; sim.tick()
+            self.assertLess(sim.battery,before); sim.x=1000
+            self.assertGreater(sim.return_energy_required(),sim.LOW_BATTERY)
+
     def test_restart_restores_progress_but_requires_safe_resume(self):
         scenario=Scenario("s","test",20,20,(Waypoint("dock",0,0,0),Waypoint("b",10,0,0)),())
         with tempfile.TemporaryDirectory() as directory:
@@ -57,6 +76,13 @@ class SimulatorTest(unittest.TestCase):
             for _ in range(20): sim.tick()
             sim.command("pause"); before=sim.state()["robot"]; restored=PatrolSimulator(scenario,evidence,state_path=path); after=restored.state()["robot"]
             self.assertEqual("paused",after["status"]); self.assertAlmostEqual(before["distance"],after["distance"],places=1); self.assertIn("restart",after["fault"])
+
+    def test_non_finite_runtime_state_fails_safe(self):
+        scenario=Scenario("s","test",20,20,(Waypoint("dock",0,0,0),Waypoint("b",1,0,0)),())
+        with tempfile.TemporaryDirectory() as directory:
+            path=Path(directory)/"state.json"; path.write_text(json.dumps({"schema_version":2,"x":float("nan"),"y":0,"target_index":0,"dwell_remaining":0,"lap":0,"battery":50,"distance":0,"tick_count":0,"status":"patrolling"}))
+            sim=PatrolSimulator(scenario,EvidenceStore(Path(directory)/"evidence"),state_path=path)
+            self.assertEqual("fault",sim.status); self.assertIn("could not be restored",sim.fault)
 
 
 if __name__ == "__main__": unittest.main()

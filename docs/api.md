@@ -10,6 +10,10 @@ When `OPENPATROL_OPERATOR_TOKEN` is configured, command and review mutations req
 - `GET /api/v1/incidents` — evidence receipts
 - `GET /api/v1/incidents/{event_id}/verify` — capture and audit-chain verification
 - `POST /api/v1/incidents/{event_id}/review` — disposition `confirmed`, `dismissed` or `escalated`, optional note and actor
+
+Robot state includes `return_energy_required`, the greater of the configured low-battery threshold and estimated straight-line travel energy to waypoint zero plus a safety reserve. It is a simulation estimate, not a battery-management-system range guarantee.
+
+Detection ingestion is idempotent for the pair `(source, id)`, including across process restarts. Adapters may safely retry the same event; changing either value creates a distinct incident.
 - `POST /api/v1/detections` — authenticated normalized external detection; requires `Authorization: Bearer $OPENPATROL_INGEST_TOKEN`
 - `GET /metrics` — Prometheus text exposition
 - `GET /api/v1/audit/verify` — verify the operational audit hash chain

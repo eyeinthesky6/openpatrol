@@ -28,10 +28,22 @@ class EvidenceStore:
         self.retention_days = max(1, retention_days)
         self.max_records = max(10, max_records)
         self.signing_key = signing_key.encode("utf-8")
+        self._source_index: dict[tuple[str, str], str] = {}
+        for receipt in self.list():
+            detection = receipt.get("detection", {})
+            if detection.get("source") != "synthetic-scenario" and detection.get("source_event_id"):
+                self._source_index[(str(detection["source"]), str(detection["source_event_id"]))] = receipt["event_id"]
 
     def create(self, *, robot_id: str, site_id: str, lap: int, waypoint: dict[str, Any], event: dict[str, Any], source: str = "synthetic-scenario", media: dict[str, Any] | None = None) -> dict[str, Any]:
+        source_key = (str(source), str(event["id"])[:120])
+        with self._lock:
+            existing_id = self._source_index.get(source_key) if source != "synthetic-scenario" else None
+            if existing_id:
+                try: return self.get(existing_id)
+                except FileNotFoundError: self._source_index.pop(source_key, None)
         now = datetime.now(timezone.utc)
-        event_id = f"evt-{now.strftime('%Y%m%dT%H%M%S')}-{event['id']}-{uuid.uuid4().hex[:8]}"
+        # Detector identifiers are untrusted metadata, never filesystem names.
+        event_id = f"evt-{now.strftime('%Y%m%dT%H%M%S')}-{uuid.uuid4().hex[:16]}"
         capture = {
             "schema_version": "openpatrol.evidence/v2",
             "event_id": event_id,
@@ -43,6 +55,7 @@ class EvidenceStore:
             "detection": {
                 "type": event["event_type"], "title": event["title"],
                 "severity": event["severity"], "confidence": event["confidence"], "source": source,
+                "source_event_id": str(event["id"])[:120],
             },
             "media": media or {"kind": "simulation_snapshot" if source == "synthetic-scenario" else "external_reference", "reference": f"snapshot://{event_id}" if source == "synthetic-scenario" else None, "sha256": None},
             "software": {"openpatrol": "0.2.0", "detector": "synthetic-v1"},
@@ -56,8 +69,10 @@ class EvidenceStore:
         if self.signing_key:
             receipt["integrity"]["signature"] = hmac.new(self.signing_key, receipt["integrity"]["digest"].encode("ascii"), hashlib.sha256).hexdigest()
             receipt["integrity"]["signature_algorithm"] = "hmac-sha256"
+            receipt["integrity"]["audit_signature"] = self._sign_audit_tail(receipt)
         with self._lock:
             self._write(receipt)
+            if source != "synthetic-scenario": self._source_index[source_key] = event_id
             self.prune()
         return receipt
 
@@ -73,6 +88,8 @@ class EvidenceStore:
             action = {"sequence": len(receipt["audit"]) + 1, "action": "review", "disposition": disposition, "note": clean_note, "actor": actor[:80], "at": timestamp, "previous": previous}
             action["digest"] = _digest(action)
             receipt["audit"].append(action)
+            if self.signing_key:
+                receipt["integrity"]["audit_signature"] = self._sign_audit_tail(receipt)
             self._write(receipt)
             return receipt
 
@@ -83,9 +100,11 @@ class EvidenceStore:
 
     def verify(self, receipt_or_id: dict[str, Any] | str) -> dict[str, Any]:
         receipt = self.get(receipt_or_id) if isinstance(receipt_or_id, str) else receipt_or_id
+        integrity = receipt.get("integrity", {})
         capture = {key: value for key, value in receipt.items() if key not in {"integrity", "review", "audit"}}
-        capture_valid = receipt.get("integrity", {}).get("digest") == _digest(capture)
-        previous = receipt.get("integrity", {}).get("digest", "")
+        metadata_valid = integrity.get("algorithm") == "sha256" and integrity.get("scope") == "capture"
+        capture_valid = metadata_valid and integrity.get("digest") == _digest(capture)
+        previous = integrity.get("digest", "")
         audit_valid = True
         for index, action in enumerate(receipt.get("audit", []), 1):
             claimed = action.get("digest")
@@ -94,11 +113,33 @@ class EvidenceStore:
                 audit_valid = False
                 break
             previous = claimed
-        signature = receipt.get("integrity", {}).get("signature")
+        review = receipt.get("review", {})
+        actions = receipt.get("audit", [])
+        if review.get("status") == "pending":
+            review_valid = not actions and all(review.get(key) is None for key in ("disposition", "note", "reviewed_at"))
+        elif review.get("status") == "reviewed" and actions:
+            last = actions[-1]
+            review_valid = (last.get("action") == "review" and last.get("disposition") == review.get("disposition")
+                            and last.get("note") == review.get("note") and last.get("at") == review.get("reviewed_at"))
+        else:
+            review_valid = False
+        signature = integrity.get("signature")
         signature_valid = None
         if signature is not None:
-            signature_valid = bool(self.signing_key) and hmac.compare_digest(signature, hmac.new(self.signing_key, receipt["integrity"]["digest"].encode("ascii"), hashlib.sha256).hexdigest())
-        return {"valid": capture_valid and audit_valid and signature_valid is not False, "capture_valid": capture_valid, "audit_valid": audit_valid, "signature_valid": signature_valid, "event_id": receipt.get("event_id")}
+            signature_valid = (integrity.get("signature_algorithm") == "hmac-sha256" and bool(self.signing_key)
+                               and hmac.compare_digest(signature, hmac.new(self.signing_key, integrity["digest"].encode("ascii"), hashlib.sha256).hexdigest()))
+        audit_signature = integrity.get("audit_signature")
+        audit_signature_valid = None
+        if audit_signature is not None:
+            audit_signature_valid = bool(self.signing_key) and hmac.compare_digest(audit_signature, self._sign_audit_tail(receipt))
+        valid = capture_valid and audit_valid and review_valid and signature_valid is not False and audit_signature_valid is not False
+        return {"valid": valid, "capture_valid": capture_valid, "audit_valid": audit_valid, "review_valid": review_valid,
+                "signature_valid": signature_valid, "audit_signature_valid": audit_signature_valid, "event_id": receipt.get("event_id")}
+
+    def _sign_audit_tail(self, receipt: dict[str, Any]) -> str:
+        tail = receipt["audit"][-1]["digest"] if receipt.get("audit") else receipt["integrity"]["digest"]
+        message = f"{receipt['event_id']}:{tail}".encode("utf-8")
+        return hmac.new(self.signing_key, message, hashlib.sha256).hexdigest()
 
     def list(self) -> list[dict[str, Any]]:
         with self._lock:
@@ -115,7 +156,9 @@ class EvidenceStore:
                 try: captured = datetime.fromisoformat(json.loads(path.read_text(encoding="utf-8"))["captured_at"])
                 except (KeyError, ValueError, json.JSONDecodeError): captured = datetime.min.replace(tzinfo=timezone.utc)
                 if index >= self.max_records or captured < cutoff:
+                    event_id = path.stem
                     path.unlink(); removed += 1
+                    self._source_index = {key:value for key,value in self._source_index.items() if value != event_id}
             return removed
 
     def _write(self, receipt: dict[str, Any]) -> None:

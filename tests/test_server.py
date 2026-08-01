@@ -44,10 +44,23 @@ class ServerTest(unittest.TestCase):
         self.assertTrue(self.request(f"/api/v1/incidents/{receipt['event_id']}/verify")[1]["valid"])
         self.assertTrue(self.request("/api/v1/audit/verify")[1]["valid"])
 
+    def test_detector_retries_do_not_create_duplicate_incidents(self):
+        event={"id":"same-event","event_type":"person","title":"Person","severity":"high","confidence":.91,"source":"frigate/gate"}
+        first=self.request("/api/v1/detections",event,"secret")[1]; second=self.request("/api/v1/detections",event,"secret")[1]
+        self.assertEqual(first["event_id"],second["event_id"]); self.assertEqual(1,len(self.request("/api/v1/incidents")[1]["incidents"]))
+
     def test_ingest_requires_token(self):
         with self.assertRaises(urllib.error.HTTPError) as caught:
             self.request("/api/v1/detections",{})
         self.assertEqual(401,caught.exception.code)
+
+    def test_detection_fields_are_bounded(self):
+        event={"id":"x"*121,"event_type":"person","title":"Person","severity":"high","confidence":.91}
+        with self.assertRaises(urllib.error.HTTPError) as caught: self.request("/api/v1/detections",event,"secret")
+        self.assertEqual(400,caught.exception.code)
+        event={"id":"ok","event_type":"person","title":"Person","severity":"high","confidence":"NaN"}
+        with self.assertRaises(urllib.error.HTTPError) as caught: self.request("/api/v1/detections",event,"secret")
+        self.assertEqual(400,caught.exception.code)
 
     def test_invalid_legacy_status_is_rejected(self):
         with self.assertRaises(urllib.error.HTTPError) as caught: self.request("/api/patrol",{"status":"flying"})
