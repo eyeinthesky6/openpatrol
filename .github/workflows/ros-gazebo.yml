@@ -44,7 +44,7 @@ jobs:
         run: |
           source /opt/ros/jazzy/setup.bash
           colcon build --base-paths ros2 --event-handlers console_direct+
-      - name: Run headless Gazebo hardware smoke test
+      - name: Run Gazebo hardware, SLAM and Nav2 smoke tests
         shell: bash
         run: |
           source /opt/ros/jazzy/setup.bash
@@ -54,20 +54,11 @@ jobs:
           gazebo_pid=$!
           ros2 run openpatrol_adapter safety_adapter >runtime/ros-ci/adapter.log 2>&1 &
           adapter_pid=$!
-          cleanup() { kill $gazebo_pid $adapter_pid 2>/dev/null || true; wait $gazebo_pid $adapter_pid 2>/dev/null || true; }
+          cleanup() { kill $gazebo_pid $adapter_pid ${navigation_pid:-} 2>/dev/null || true; wait $gazebo_pid $adapter_pid ${navigation_pid:-} 2>/dev/null || true; }
           trap cleanup EXIT
           python3 scripts/ros_gazebo_smoke.py | tee runtime/ros-ci/smoke.log
-      - name: Run SLAM and Nav2 integration smoke test
-        shell: bash
-        run: |
-          source /opt/ros/jazzy/setup.bash
-          source install/setup.bash
-          ros2 launch openpatrol_simulation gazebo_headless.launch.py >runtime/ros-ci/navigation-gazebo.log 2>&1 &
-          gazebo_pid=$!
           ros2 launch openpatrol_simulation navigation.launch.py >runtime/ros-ci/navigation.log 2>&1 &
           navigation_pid=$!
-          cleanup() { kill $gazebo_pid $navigation_pid 2>/dev/null || true; wait $gazebo_pid $navigation_pid 2>/dev/null || true; }
-          trap cleanup EXIT
           python3 scripts/ros_navigation_smoke.py | tee runtime/ros-ci/navigation-smoke.log
       - name: Upload ROS and Gazebo logs
         if: always()
