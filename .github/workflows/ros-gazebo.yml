@@ -54,7 +54,8 @@ jobs:
           gazebo_pid=$!
           ros2 run openpatrol_adapter safety_adapter >runtime/ros-ci/adapter.log 2>&1 &
           adapter_pid=$!
-          trap 'kill $gazebo_pid $adapter_pid 2>/dev/null || true' EXIT
+          cleanup() { kill $gazebo_pid $adapter_pid 2>/dev/null || true; wait $gazebo_pid $adapter_pid 2>/dev/null || true; }
+          trap cleanup EXIT
           python3 scripts/ros_gazebo_smoke.py | tee runtime/ros-ci/smoke.log
       - name: Run SLAM and Nav2 integration smoke test
         shell: bash
@@ -65,7 +66,8 @@ jobs:
           gazebo_pid=$!
           ros2 launch openpatrol_simulation navigation.launch.py >runtime/ros-ci/navigation.log 2>&1 &
           navigation_pid=$!
-          trap 'kill $gazebo_pid $navigation_pid 2>/dev/null || true' EXIT
+          cleanup() { kill $gazebo_pid $navigation_pid 2>/dev/null || true; wait $gazebo_pid $navigation_pid 2>/dev/null || true; }
+          trap cleanup EXIT
           python3 scripts/ros_navigation_smoke.py | tee runtime/ros-ci/navigation-smoke.log
       - name: Upload ROS and Gazebo logs
         if: always()
