@@ -8,6 +8,7 @@ license = {text = "Apache-2.0"}
 [project.scripts]
 openpatrol = "openpatrol.server:main"
 openpatrol-frigate = "openpatrol.frigate_bridge:main"
+openpatrol-vision-adapter = "openpatrol.vision_adapter:main"
 openpatrol-exercise = "openpatrol.exercise:main"
 openpatrol-hardware-test = "openpatrol.hardware_harness:main"
 

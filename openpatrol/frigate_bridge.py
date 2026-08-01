@@ -1,14 +1,24 @@
 """Optional Frigate MQTT adapter. Install with: pip install 'openpatrol[mqtt]'."""
 from __future__ import annotations
-import argparse, json, os, urllib.request
+import argparse, json, os, time, urllib.request
 from typing import Any
 
 def normalize_frigate_event(message: dict[str, Any], base_url: str = "") -> dict[str, Any] | None:
     after = message.get("after") or {}
     if message.get("type") not in {"new", "update", "end"} or not after.get("id") or not after.get("label"): return None
     score=float(after.get("top_score") or after.get("score") or 0); label=str(after["label"]); camera=str(after.get("camera","unknown"))
+    zones=[str(zone) for zone in (after.get("entered_zones") or after.get("current_zones") or [])]
+    restricted={zone.strip() for zone in os.getenv("OPENPATROL_RESTRICTED_ZONES","").split(",") if zone.strip()}
+    duration=max(0.0,float(after.get("end_time") or time.time())-float(after.get("start_time") or time.time()))
+    loiter_seconds=max(1,int(os.getenv("OPENPATROL_LOITER_SECONDS","300")))
+    rule="object_detected"; severity="medium"; title=f"{label.replace('_',' ').title()} at {camera}"
+    if label=="person" and restricted.intersection(zones): rule="restricted_zone_entry"; severity="high"; title=f"Person entered restricted zone at {camera}"
+    if label=="person" and duration>=loiter_seconds: rule="loitering"; severity="high"; title=f"Person remained at {camera} for {int(duration)} seconds"
+    elif label=="person" and score>=.8: severity="high"
     clip=f"{base_url.rstrip('/')}/api/events/{after['id']}/clip.mp4" if base_url else None
-    return {"id":f"frigate-{after['id']}","event_type":label,"title":f"{label.replace('_',' ').title()} at {camera}","severity":"high" if label=="person" and score>=.8 else "medium","confidence":max(0.0,min(score,1.0)),"source":f"frigate/{camera}","media_reference":clip}
+    detection={"id":f"frigate-{after['id']}","event_type":label,"title":title,"severity":severity,"confidence":max(0.0,min(score,1.0)),"source":f"frigate/{camera}","provider":"frigate","rule":rule}
+    if clip: detection["media_reference"]=clip
+    return detection
 
 def post_detection(api_url: str, token: str, detection: dict[str, Any]) -> None:
     request=urllib.request.Request(api_url.rstrip("/")+"/api/v1/detections",data=json.dumps(detection).encode(),headers={"Content-Type":"application/json","Authorization":f"Bearer {token}"},method="POST")

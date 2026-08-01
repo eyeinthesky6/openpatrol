@@ -27,5 +27,11 @@ class RosAssetsTest(unittest.TestCase):
             self.assertIn(value,workflow)
         for value in ("/odom","/scan","/cmd_vel_safe","moved>=.05","safe_zero_after_drive"):
             self.assertIn(value,probe)
+    def test_navigation_assets_expose_slam_nav2_and_docking_boundary(self):
+        package=(ROOT/"ros2/openpatrol_simulation/package.xml").read_text(); launch=(ROOT/"ros2/openpatrol_simulation/launch/navigation.launch.py").read_text(); params=(ROOT/"ros2/openpatrol_simulation/config/nav2_params.yaml").read_text()
+        for value in ("nav2_bringup","slam_toolbox","opennav_docking"): self.assertIn(value,package+launch)
+        for value in ("scan_topic: /scan","base_frame: base_link","max_velocity: [0.5, 0.0, 1.0]"): self.assertIn(value,params)
+        workflow=(ROOT/".github/workflows/ros-gazebo.yml").read_text(); smoke=(ROOT/"scripts/ros_navigation_smoke.py").read_text()
+        for value in ("navigation.launch.py","ros_navigation_smoke.py","/navigate_to_pose","/follow_waypoints","/map"): self.assertIn(value,workflow+smoke)
 
 if __name__=="__main__": unittest.main()

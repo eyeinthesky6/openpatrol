@@ -10,6 +10,7 @@ When `OPENPATROL_OPERATOR_TOKEN` is configured, command and review mutations req
 - `GET /api/v1/incidents` — evidence receipts
 - `GET /api/v1/incidents/{event_id}/verify` — capture and audit-chain verification
 - `POST /api/v1/incidents/{event_id}/review` — disposition `confirmed`, `dismissed` or `escalated`, optional note and actor
+- `POST /api/v1/incidents/{event_id}/subjects` — audited operator annotation such as `{"subject_id":"primary","label":"Known courier"}`
 
 Robot state includes `return_energy_required`, the greater of the configured low-battery threshold and estimated straight-line travel energy to waypoint zero plus a safety reserve. It is a simulation estimate, not a battery-management-system range guarantee.
 
@@ -18,6 +19,7 @@ Detection ingestion is idempotent for the pair `(source, id)`, including across 
 - `GET /metrics` — Prometheus text exposition
 - `GET /api/v1/audit/verify` — verify the operational audit hash chain
 - `GET /api/v1/diagnostics` — storage, navigation, camera, receipt and audit health
+- `GET /api/v1/integrations` — provider-neutral capability registry and adapter contracts
 - `GET /api/v1/settings` — safe policy settings and authentication capability state
 - `POST /api/v1/settings` — operator-authenticated retention, receipt cap, speed and timezone update
 

@@ -1,41 +1,43 @@
 # Setup guide
 
-## 1. Run the local simulation
+## 1. One-command simulation
 
-Install Python 3.11 or newer, clone the repository and run:
+Install Docker with Compose v2, clone the repository and run:
 
 ```bash
-python3 -m openpatrol.server
+./scripts/openpatrol up
 ```
 
-Open `http://127.0.0.1:8765`. The default loopback deployment needs no credentials. Mission Control clearly labels its camera as synthetic and its rear camera as offline.
+The command creates private detector/signing secrets in `.env`, builds the non-root container and starts the simulator. Open `http://127.0.0.1:8765`. Use `./scripts/openpatrol check`, `logs` and `down` for verification, logs and shutdown. Developers may instead run `python3 -m openpatrol.server` with Python 3.11+.
 
-## 2. Run a secured LAN pilot
+## 2. Camera, recording and object detection
 
-Generate three different long random secrets for operator mutations, detector ingestion and receipt signing. Provide them through a root-readable environment file rather than shell history:
+Edit `CAMERA_RTSP_URL` in `.env`, then run `./scripts/openpatrol vision`. This starts pinned Frigate, Mosquitto, the authenticated event bridge and OpenPatrol. Frigate tracks common person, vehicle and animal classes. Confirm the stream, events, snapshots and camera health before relying on alerts. Camera credentials and RTSP discovery cannot be guessed safely.
 
-```text
-OPENPATROL_HOST=0.0.0.0
-OPENPATROL_OPERATOR_TOKEN=<operator secret>
-OPENPATROL_INGEST_TOKEN=<detector secret>
-OPENPATROL_SIGNING_KEY=<device signing secret>
-OPENPATROL_DATA=/var/lib/openpatrol
+Do not expose OpenPatrol, ROS 2, MQTT, Frigate or go2rtc directly to the internet. For a LAN pilot, set a separate `OPENPATROL_OPERATOR_TOKEN` in `.env` and place HTTP access behind an authenticated TLS gateway or VPN.
+
+## 3. Connect another vision model
+
+Any model may emit one JSON object per line:
+
+```json
+{"id":"frame-42-person-1","label":"person","confidence":0.91,"provider":"yolo-local","location":"front","media_reference":"https://controlled-media/event.jpg"}
 ```
 
-Place OpenPatrol behind a TLS reverse proxy on a trusted VLAN or VPN. Do not expose port 8765, ROS 2, MQTT, Frigate or go2rtc directly to the internet. Enter the operator token in Settings; it stays in browser session storage and is not written into frontend files.
+Pipe it into `openpatrol-vision-adapter`. The adapter normalizes and authenticates events. Provider output remains immutable; an operator can attach “Known courier” in the incident dialog. Labels are separately audited annotations, not facial-recognition claims.
 
-## 3. Validate before connecting motors
+## 4. Mapping and autonomous navigation
 
-Run `./scripts/check.sh`, the virtual hardware suite in `docs/virtual-hardware.md` and the eight-hour software exercise from `docs/simulation-exercise.md`. Progress from deterministic hardware to ROS mock hardware and then Gazebo before connecting motors. Then follow `docs/safety-validation.md` with wheels lifted, an exclusion zone and a physical E-stop. Software success does not waive physical validation.
+Copy `ros2/` into a ROS 2 Jazzy workspace and build both packages with `colcon`. Start with `mock_hardware.launch.py`, then `gazebo.launch.py`. Start `navigation.launch.py` alongside the robot to enable SLAM Toolbox and Nav2. It consumes the same `/scan`, `/odom` and TF contract used by Gazebo and physical hardware. Drive under supervision to create the first map, save it, then define patrol waypoints. Chassis footprint, acceleration, braking and sensor noise require calibration.
 
-## 4. Attach Frigate
+## 5. Physical docking
 
-Install `pip install 'openpatrol[mqtt]'`, copy the examples under `deploy/frigate`, replace the RTSP placeholder, pin container versions and configure the detector secret. Confirm that Diagnostics shows the expected adapter state and that received events contain the intended camera, timestamp and media reference.
+`opennav_docking` provides navigation-level dock and undock actions. Each dock needs a platform plug-in for final alignment, charging feedback and retry behaviour. Contacts, fusing, thermal monitoring and electrical interlocks are hardware—not YAML. The simulator exercises low-battery return, docking and gradual charging before hardware arrives.
 
-## 5. Attach ROS 2
+## 6. Safety validation
 
-Copy both packages under `ros2/` into a ROS 2 Jazzy workspace and build with `colcon build --packages-select openpatrol_adapter openpatrol_simulation`. Start with `mock_hardware.launch.py`, then `gazebo.launch.py`. Validate `/hardware/estop`, `/battery_state`, `/cmd_vel_safe` and the 250 ms motor-controller watchdog before allowing floor motion.
+Run `./scripts/openpatrol check`, the virtual hardware suite, the hosted Gazebo smoke test and the operational exercise. Before floor motion, validate `/hardware/estop`, `/battery_state`, `/cmd_vel_safe`, the motor-controller watchdog, a hardwired power interruption and `docs/safety-validation.md` with wheels lifted and an exclusion zone.
 
-## 6. Operate
+## 7. Operations
 
-Use Overview for live state and safety commands, Incidents for evidence review, Diagnostics for degraded components and Settings for retention/speed policy. Return to dock and emergency stop require confirmation. Review operational alerts at shift start and handover.
+Use Overview for state and safety commands, Incidents for evidence review and labels, Diagnostics for provider/camera/navigation degradation, and Settings for retention and speed policy. An unchecked physical validation item is not a passed test.

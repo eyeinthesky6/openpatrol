@@ -69,5 +69,24 @@ class EvidenceTest(unittest.TestCase):
     def test_canonical_representation_is_order_independent(self):
         self.assertEqual(canonical_bytes({"a":1,"b":2}), canonical_bytes({"b":2,"a":1}))
 
+    def test_operator_subject_labels_are_audited_without_changing_capture(self):
+        with tempfile.TemporaryDirectory() as directory:
+            store=EvidenceStore(Path(directory),signing_key="secret")
+            receipt=store.create(robot_id="r",site_id="s",lap=0,waypoint={"id":"a","x":0,"y":0},event={"id":"e","event_type":"person","title":"P","severity":"low","confidence":.5})
+            digest=receipt["integrity"]["digest"]
+            labeled=store.update_subject_label(receipt["event_id"],"primary","Known courier")
+            self.assertEqual(digest,labeled["integrity"]["digest"])
+            self.assertEqual("Known courier",labeled["annotations"]["subjects"][0]["label"])
+            self.assertTrue(store.verify(labeled)["valid"])
+            labeled["annotations"]["subjects"][0]["label"]="Someone else"
+            self.assertFalse(store.verify(labeled)["annotations_valid"])
+
+    def test_label_after_review_remains_valid(self):
+        with tempfile.TemporaryDirectory() as directory:
+            store=EvidenceStore(Path(directory)); receipt=store.create(robot_id="r",site_id="s",lap=0,waypoint={"id":"a","x":0,"y":0},event={"id":"e","event_type":"person","title":"P","severity":"low","confidence":.5})
+            store.update_review(receipt["event_id"],"confirmed")
+            labeled=store.update_subject_label(receipt["event_id"],"primary","Person X")
+            self.assertTrue(store.verify(labeled)["valid"])
+
 
 if __name__ == "__main__": unittest.main()

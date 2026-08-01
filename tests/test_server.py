@@ -76,5 +76,14 @@ class ServerTest(unittest.TestCase):
         saved=self.request("/api/v1/settings",{"retention_days":14,"max_records":200,"max_speed_mps":.25,"site_timezone":"Asia/Kolkata"})[1]
         self.assertTrue(saved["saved"]); self.assertEqual(14,self.request("/api/v1/settings")[1]["retention_days"]); self.assertAlmostEqual(.1,self.sim.speed)
 
+    def test_integrations_and_operator_subject_label(self):
+        capabilities=self.request("/api/v1/integrations")[1]["capabilities"]
+        self.assertEqual("nav2",capabilities["navigation"]["provider"])
+        event={"id":"label-me","event_type":"person","title":"Unknown person","severity":"medium","confidence":.8}
+        receipt=self.request("/api/v1/detections",event,"secret")[1]
+        labeled=self.request(f"/api/v1/incidents/{receipt['event_id']}/subjects",{"subject_id":"primary","label":"Known courier"},"operator-secret")[1]
+        self.assertEqual("Known courier",labeled["annotations"]["subjects"][0]["label"])
+        self.assertTrue(self.request(f"/api/v1/incidents/{receipt['event_id']}/verify")[1]["valid"])
+
 
 if __name__ == "__main__": unittest.main()

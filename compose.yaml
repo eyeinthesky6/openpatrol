@@ -4,11 +4,50 @@ services:
     ports: ["8765:8765"]
     environment:
       OPENPATROL_TICK_SECONDS: "0.2"
+      OPENPATROL_INGEST_TOKEN: ${OPENPATROL_INGEST_TOKEN:-}
+      OPENPATROL_OPERATOR_TOKEN: ${OPENPATROL_OPERATOR_TOKEN:-}
+      OPENPATROL_SIGNING_KEY: ${OPENPATROL_SIGNING_KEY:-}
+      FRIGATE_URL: ${FRIGATE_URL:-}
+      OPENPATROL_CAMERA_UI_URL: ${OPENPATROL_CAMERA_UI_URL:-}
     volumes:
       - openpatrol-data:/data
     read_only: true
     tmpfs: [/tmp]
     security_opt: [no-new-privileges:true]
     cap_drop: [ALL]
+  mqtt:
+    image: eclipse-mosquitto:2.0.22
+    profiles: [vision]
+    volumes: ["./deploy/frigate/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro"]
+    read_only: true
+    tmpfs: [/tmp]
+    security_opt: [no-new-privileges:true]
+    cap_drop: [ALL]
+  frigate:
+    image: ghcr.io/blakeblackshear/frigate:0.17.1
+    profiles: [vision]
+    depends_on: [mqtt]
+    shm_size: "256mb"
+    ports: ["5000:5000", "8554:8554", "8555:8555/tcp", "8555:8555/udp"]
+    volumes:
+      - ./runtime/frigate/config.yml:/config/config.yml:ro
+      - frigate-media:/media/frigate
+    security_opt: [no-new-privileges:true]
+  vision-bridge:
+    build: .
+    profiles: [vision]
+    depends_on: [openpatrol, mqtt, frigate]
+    command: ["openpatrol-frigate", "--mqtt-host", "mqtt"]
+    environment:
+      OPENPATROL_URL: http://openpatrol:8765
+      OPENPATROL_INGEST_TOKEN: ${OPENPATROL_INGEST_TOKEN:-development-only}
+      FRIGATE_URL: http://frigate:5000
+      OPENPATROL_RESTRICTED_ZONES: ${OPENPATROL_RESTRICTED_ZONES:-}
+      OPENPATROL_LOITER_SECONDS: ${OPENPATROL_LOITER_SECONDS:-300}
+    read_only: true
+    tmpfs: [/tmp]
+    security_opt: [no-new-privileges:true]
+    cap_drop: [ALL]
 volumes:
   openpatrol-data:
+  frigate-media:

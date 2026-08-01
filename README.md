@@ -7,10 +7,10 @@ OpenPatrol is a mobility-agnostic, local-first patrol and evidence reference sys
 Requires Python 3.11+ and no third-party runtime packages.
 
 ```bash
-python3 -m openpatrol.server
+./scripts/openpatrol up
 ```
 
-Open <http://127.0.0.1:8765>. For a faster demo: `OPENPATROL_TICK_SECONDS=0.15 python3 -m openpatrol.server`.
+This creates local secrets, builds the container, starts the core simulation and prints the dashboard URL. Open <http://127.0.0.1:8765>. It requires Docker Compose v2. Python 3.11+ remains a dependency-free developer alternative: `python3 -m openpatrol.server`.
 
 Or run the non-root container:
 
@@ -27,6 +27,7 @@ docker compose up --build
 - versioned JSON API, health endpoint, Prometheus-compatible metrics and security headers
 - ROS 2 mobility contract and Frigate integration recipe at documented adapter boundaries
 - installable ROS 2 Jazzy safety-adapter package and optional Frigate MQTT bridge
+- provider-neutral vision adapter, audited operator subject labels, SLAM Toolbox/Nav2 configuration and a docking plug-in boundary
 - parametric reference-base/payload CAD, India-oriented BOM, stop-chain wiring and physical validation protocol
 - unit, state-machine, evidence-tamper and live HTTP integration tests
 - deterministic virtual hardware, ROS 2 mock controllers and a Gazebo Harmonic warehouse digital twin
@@ -65,6 +66,8 @@ Repository map: `hardware/` contains editable mechanical source and BOM; `ros2/`
 For day-to-day use see [`docs/operator-guide.md`](docs/operator-guide.md). Physical builders must execute [`docs/safety-validation.md`](docs/safety-validation.md) and publish measured results; an unchecked box is not a passed safety test.
 
 New users should start with [`docs/setup-guide.md`](docs/setup-guide.md). The dashboard and operational safeguards are informed by recurring real-world failures documented in [`docs/competitive-lessons.md`](docs/competitive-lessons.md).
+
+To connect a camera, put its RTSP URL in the generated `.env` and run `./scripts/openpatrol vision`. This enables pinned Frigate, Mosquitto and the OpenPatrol bridge. Any other vision model can pipe normalized NDJSON into `openpatrol-vision-adapter`; OpenPatrol does not force a particular model.
 
 ## Project boundaries
 

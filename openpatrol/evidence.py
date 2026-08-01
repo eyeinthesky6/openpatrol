@@ -56,14 +56,17 @@ class EvidenceStore:
                 "type": event["event_type"], "title": event["title"],
                 "severity": event["severity"], "confidence": event["confidence"], "source": source,
                 "source_event_id": str(event["id"])[:120],
+                "provider": str(event.get("provider", source))[:120],
+                "rule": str(event.get("rule", "object_detected"))[:120],
             },
             "media": media or {"kind": "simulation_snapshot" if source == "synthetic-scenario" else "external_reference", "reference": f"snapshot://{event_id}" if source == "synthetic-scenario" else None, "sha256": None},
-            "software": {"openpatrol": "0.2.0", "detector": "synthetic-v1"},
+            "software": {"openpatrol": "0.2.0", "detector": str(event.get("provider", "synthetic-v1"))[:120]},
         }
         receipt = {
             **capture,
             "integrity": {"algorithm": "sha256", "scope": "capture", "digest": _digest(capture)},
             "review": {"status": "pending", "disposition": None, "note": None, "reviewed_at": None},
+            "annotations": {"subjects": []},
             "audit": [],
         }
         if self.signing_key:
@@ -93,6 +96,31 @@ class EvidenceStore:
             self._write(receipt)
             return receipt
 
+    def update_subject_label(self, event_id: str, subject_id: str, label: str, actor: str = "local-operator") -> dict[str, Any]:
+        """Attach an operator label without altering immutable detector output."""
+        clean_id, clean_label = str(subject_id).strip(), str(label).strip()
+        if not clean_id or len(clean_id) > 120:
+            raise ValueError("subject_id must contain 1 to 120 characters")
+        if not clean_label or len(clean_label) > 120:
+            raise ValueError("label must contain 1 to 120 characters")
+        if any(ord(char) < 32 for char in clean_id + clean_label):
+            raise ValueError("subject labels must contain printable characters")
+        with self._lock:
+            receipt = self.get(event_id)
+            subjects = receipt.setdefault("annotations", {}).setdefault("subjects", [])
+            timestamp = datetime.now(timezone.utc).isoformat()
+            entry = {"subject_id": clean_id, "label": clean_label, "labeled_at": timestamp, "actor": str(actor)[:80]}
+            subjects[:] = [item for item in subjects if item.get("subject_id") != clean_id]
+            subjects.append(entry)
+            previous = receipt["audit"][-1]["digest"] if receipt["audit"] else receipt["integrity"]["digest"]
+            action = {"sequence": len(receipt["audit"]) + 1, "action": "subject.label", **entry, "previous": previous}
+            action["digest"] = _digest(action)
+            receipt["audit"].append(action)
+            if self.signing_key:
+                receipt["integrity"]["audit_signature"] = self._sign_audit_tail(receipt)
+            self._write(receipt)
+            return receipt
+
     def get(self, event_id: str) -> dict[str, Any]:
         if not event_id.startswith("evt-") or "/" in event_id or "\\" in event_id:
             raise FileNotFoundError(event_id)
@@ -101,7 +129,7 @@ class EvidenceStore:
     def verify(self, receipt_or_id: dict[str, Any] | str) -> dict[str, Any]:
         receipt = self.get(receipt_or_id) if isinstance(receipt_or_id, str) else receipt_or_id
         integrity = receipt.get("integrity", {})
-        capture = {key: value for key, value in receipt.items() if key not in {"integrity", "review", "audit"}}
+        capture = {key: value for key, value in receipt.items() if key not in {"integrity", "review", "annotations", "audit"}}
         metadata_valid = integrity.get("algorithm") == "sha256" and integrity.get("scope") == "capture"
         capture_valid = metadata_valid and integrity.get("digest") == _digest(capture)
         previous = integrity.get("digest", "")
@@ -115,14 +143,22 @@ class EvidenceStore:
             previous = claimed
         review = receipt.get("review", {})
         actions = receipt.get("audit", [])
+        review_actions = [action for action in actions if action.get("action") == "review"]
         if review.get("status") == "pending":
-            review_valid = not actions and all(review.get(key) is None for key in ("disposition", "note", "reviewed_at"))
-        elif review.get("status") == "reviewed" and actions:
-            last = actions[-1]
+            review_valid = not review_actions and all(review.get(key) is None for key in ("disposition", "note", "reviewed_at"))
+        elif review.get("status") == "reviewed" and review_actions:
+            last = review_actions[-1]
             review_valid = (last.get("action") == "review" and last.get("disposition") == review.get("disposition")
                             and last.get("note") == review.get("note") and last.get("at") == review.get("reviewed_at"))
         else:
             review_valid = False
+        claimed_subjects = receipt.get("annotations", {}).get("subjects", [])
+        expected_subjects: dict[str, dict[str, Any]] = {}
+        for action in actions:
+            if action.get("action") == "subject.label":
+                expected_subjects[str(action.get("subject_id"))] = {key: action.get(key) for key in ("subject_id", "label", "labeled_at", "actor")}
+        annotations_valid = (isinstance(claimed_subjects, list) and
+                             sorted(claimed_subjects, key=lambda item: str(item.get("subject_id"))) == sorted(expected_subjects.values(), key=lambda item: str(item.get("subject_id"))))
         signature = integrity.get("signature")
         signature_valid = None
         if signature is not None:
@@ -132,8 +168,8 @@ class EvidenceStore:
         audit_signature_valid = None
         if audit_signature is not None:
             audit_signature_valid = bool(self.signing_key) and hmac.compare_digest(audit_signature, self._sign_audit_tail(receipt))
-        valid = capture_valid and audit_valid and review_valid and signature_valid is not False and audit_signature_valid is not False
-        return {"valid": valid, "capture_valid": capture_valid, "audit_valid": audit_valid, "review_valid": review_valid,
+        valid = capture_valid and audit_valid and review_valid and annotations_valid and signature_valid is not False and audit_signature_valid is not False
+        return {"valid": valid, "capture_valid": capture_valid, "audit_valid": audit_valid, "review_valid": review_valid, "annotations_valid": annotations_valid,
                 "signature_valid": signature_valid, "audit_signature_valid": audit_signature_valid, "event_id": receipt.get("event_id")}
 
     def _sign_audit_tail(self, receipt: dict[str, Any]) -> str:

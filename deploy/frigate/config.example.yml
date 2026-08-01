@@ -11,7 +11,7 @@ cameras:
       width: 1280
       height: 720
     objects:
-      track: [person, car]
+      track: [person, car, bicycle, motorcycle, dog, cat]
 record:
   enabled: true
   retain:

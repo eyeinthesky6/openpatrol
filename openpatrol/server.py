@@ -16,6 +16,7 @@ from .evidence import EvidenceStore
 from .audit import AuditLog
 from .scenario import load_scenario
 from .simulator import PatrolSimulator
+from .integrations import registry
 
 ROOT = Path(__file__).resolve().parent.parent
 STATIC = ROOT / "static"
@@ -57,6 +58,8 @@ class AppHandler(SimpleHTTPRequestHandler):
         if path == "/api/v1/diagnostics":
             usage=shutil.disk_usage(self.simulator.evidence.directory); state=self.simulator.state(); audit=self.audit.verify(); receipts=[self.simulator.evidence.verify(item) for item in state["incidents"]]
             return self._json({"mode":"simulation","uptime_seconds":round(time.monotonic()-self.started_at,1),"storage":{"free_bytes":usage.free,"total_bytes":usage.total,"free_percent":round(usage.free/usage.total*100,1)},"integrity":{"audit_valid":audit["valid"],"receipt_failures":sum(not item["valid"] for item in receipts)},"navigation":{"localization":"fault" if state["robot"]["status"]=="fault" else "good","command_watchdog":"simulated","target":state["robot"]["target"]},"camera":{"front":{"status":"degraded","detail":"Synthetic preview only"},"rear":{"status":"offline","detail":"No adapter configured"}}})
+        if path == "/api/v1/integrations":
+            return self._json(registry("simulation"))
         if path.startswith("/api/v1/incidents/") and path.endswith("/verify"):
             event_id = path.split("/")[4]
             try: return self._json(self.simulator.evidence.verify(event_id))
@@ -89,6 +92,12 @@ class AppHandler(SimpleHTTPRequestHandler):
                 event_id = path.split("/")[-2]
                 receipt = self.simulator.evidence.update_review(event_id, str(body.get("disposition", "")), str(body.get("note", "")), str(body.get("actor", "local-operator")))
                 self.audit.append("incident.review", actor=str(body.get("actor", "local-operator")), details={"event_id": event_id, "disposition": body.get("disposition")})
+                return self._json(receipt)
+            if path.startswith("/api/v1/incidents/") and path.endswith("/subjects"):
+                if not self._operator_authorized(): return self._error(HTTPStatus.UNAUTHORIZED, "unauthorized", "Operator token is required")
+                event_id = path.split("/")[-2]
+                receipt = self.simulator.evidence.update_subject_label(event_id, str(body.get("subject_id", "primary")), str(body.get("label", "")), str(body.get("actor", "local-operator")))
+                self.audit.append("incident.subject_label", actor=str(body.get("actor", "local-operator")), details={"event_id": event_id, "subject_id": body.get("subject_id", "primary")})
                 return self._json(receipt)
             if path == "/api/v1/detections":
                 if not self.ingest_token or self.headers.get("Authorization") != f"Bearer {self.ingest_token}":
@@ -130,8 +139,11 @@ class AppHandler(SimpleHTTPRequestHandler):
         required = {"id", "event_type", "title", "severity", "confidence"}
         missing = required - body.keys()
         if missing: raise ValueError(f"missing fields: {', '.join(sorted(missing))}")
+        allowed = required | {"source", "provider", "rule", "media_reference", "media_sha256"}
+        unknown = set(body) - allowed
+        if unknown: raise ValueError(f"unknown fields: {', '.join(sorted(unknown))}")
         if body["severity"] not in {"low", "medium", "high", "critical"}: raise ValueError("invalid severity")
-        for field, limit in {"id":120,"event_type":80,"title":200,"source":200,"media_reference":1000}.items():
+        for field, limit in {"id":120,"event_type":80,"title":200,"source":200,"provider":120,"rule":120,"media_reference":1000}.items():
             if field in body:
                 value=body[field]
                 if not isinstance(value,str) or not value.strip() or len(value)>limit or any(ord(char)<32 for char in value):
