@@ -4,7 +4,6 @@ from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
 from launch_ros.substitutions import FindPackageShare
-from launch_ros.actions import Node
 
 
 def generate_launch_description():
@@ -18,5 +17,4 @@ def generate_launch_description():
         PythonLaunchDescriptionSource(PathJoinSubstitution([FindPackageShare("nav2_bringup"), "launch", "navigation_launch.py"])),
         launch_arguments={"use_sim_time": use_sim_time, "params_file": params, "autostart": "true"}.items(),
     )
-    odom_tf=Node(package="openpatrol_adapter",executable="odom_tf",parameters=[{"use_sim_time":use_sim_time}],output="screen")
-    return LaunchDescription([DeclareLaunchArgument("use_sim_time", default_value="true"), odom_tf, slam, nav])
+    return LaunchDescription([DeclareLaunchArgument("use_sim_time", default_value="true"), slam, nav])

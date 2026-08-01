@@ -11,4 +11,5 @@ def generate_launch_description():
         AppendEnvironmentVariable("GZ_SIM_RESOURCE_PATH",str(share/"models")),
         IncludeLaunchDescription(PythonLaunchDescriptionSource(str(gz/"launch/gz_sim.launch.py")),launch_arguments={"gz_args":f"-s -r {share/'worlds/warehouse.sdf'}"}.items()),
         Node(package="ros_gz_bridge",executable="parameter_bridge",parameters=[{"config_file":str(share/"config/bridge.yaml")}],output="screen"),
+        Node(package="openpatrol_adapter",executable="odom_tf",parameters=[{"use_sim_time":True}],output="screen"),
     ])
