@@ -38,5 +38,13 @@ class RosAssetsTest(unittest.TestCase):
         virtual_lidar=(ROOT/"ros2/openpatrol_adapter/openpatrol_adapter/virtual_lidar.py").read_text()
         for value in ("wall_range","LaserScan","/scan","360"): self.assertIn(value,virtual_lidar)
         self.assertIn("virtual_lidar",(ROOT/"ros2/openpatrol_simulation/launch/gazebo_headless.launch.py").read_text())
+    def test_hardware_proposals_are_editable_and_honestly_labelled(self):
+        readme=(ROOT/"README.md").read_text(); platforms=(ROOT/"docs/hardware-platforms.md").read_text()
+        for relative in ("hardware/reference-rover4/cad/base.scad","hardware/reference-triscout/cad/base.scad","docs/assets/openpatrol-hardware-family-concept.png","docs/assets/openpatrol-warehouse-concept.png"):
+            self.assertTrue((ROOT/relative).is_file(),relative)
+        for value in ("Concept render, not built hardware","AI-generated operating concept"):
+            self.assertIn(value,readme)
+        for value in ("OpenPatrol Rover One","OpenPatrol TriScout","OpenPatrol AirScout","OpenPatrol Sentinel","current repository does not yet implement"):
+            self.assertIn(value,platforms)
 
 if __name__=="__main__": unittest.main()

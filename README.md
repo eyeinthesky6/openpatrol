@@ -2,6 +2,10 @@
 
 OpenPatrol is a mobility-agnostic, local-first patrol and evidence reference system. It ships a working simulation—not a mock screen—that closes the product loop: route execution, detection, tamper-evident evidence, human review, audit history, safety-state controls and observability.
 
+![AI-generated concept render of proposed OpenPatrol hardware family](docs/assets/openpatrol-hardware-family-concept.png)
+
+> **Concept render, not built hardware.** The recommended product is the stable four-wheel **OpenPatrol Rover One**. TriScout, AirScout and the wheeled Sentinel are proposals at earlier maturity levels. See the [hardware platform matrix](docs/hardware-platforms.md).
+
 ## Quick start
 
 Requires Python 3.11+ and no third-party runtime packages.
@@ -41,6 +45,10 @@ Run a production-like accelerated eight-hour shift with `python3 -m openpatrol.e
 Run the dependency-free hardware acceptance suite with `python3 -m openpatrol.hardware_harness`. For ROS 2 mock hardware and Gazebo instructions, see [`docs/virtual-hardware.md`](docs/virtual-hardware.md).
 
 GitHub Actions also builds ROS 2 Jazzy and runs the Gazebo warehouse headlessly. It proves LiDAR delivery, odometry motion through the safety adapter and watchdog stopping, then preserves the simulator logs as an artifact.
+
+![AI-generated concept of Rover One and AirScout inspecting a warehouse](docs/assets/openpatrol-warehouse-concept.png)
+
+The image above is an AI-generated operating concept, not a field-test photograph. The checked-in Gazebo test currently validates the ground rover; a PX4/ArduPilot drone adapter is proposed but not yet implemented.
 
 ## Configuration
 

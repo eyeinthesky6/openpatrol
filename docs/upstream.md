@@ -12,5 +12,8 @@ OpenPatrol integrates rather than clones upstream projects.
 | Multi-robot coordination | Open-RMF | Deferred adapter |
 | Docked drone | PX4 | Deferred MAVLink/ROS 2 adapter |
 | Ultra-low-cost edition | OpenBot | Separate reference build |
+| Open reference base | TurtleBot3 / Robotont | Compatibility and mechanical reference only |
+| Walking humanoid research | Poppy Humanoid | Deferred external integration |
+| Uneven-ground research | OpenCat | Deferred external integration |
 
 No third-party source has been copied into this repository.
