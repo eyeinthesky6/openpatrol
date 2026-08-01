@@ -33,5 +33,7 @@ class RosAssetsTest(unittest.TestCase):
         for value in ("scan_topic: /scan","base_frame: base_link","max_velocity: [0.5, 0.0, 1.0]"): self.assertIn(value,params)
         workflow=(ROOT/".github/workflows/ros-gazebo.yml").read_text(); smoke=(ROOT/"scripts/ros_navigation_smoke.py").read_text()
         for value in ("navigation.launch.py","ros_navigation_smoke.py","/navigate_to_pose","/follow_waypoints","/map"): self.assertIn(value,workflow+smoke)
+        odom_tf=(ROOT/"ros2/openpatrol_adapter/openpatrol_adapter/odom_tf.py").read_text()
+        for value in ("TransformBroadcaster","/odom","base_link","math.isfinite"): self.assertIn(value,odom_tf)
 
 if __name__=="__main__": unittest.main()
