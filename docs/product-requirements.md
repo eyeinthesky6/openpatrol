@@ -9,6 +9,7 @@ This matrix prevents roadmap claims from being mistaken for shipped capability.
 | Tamper-evident event receipt | Implemented | Immutable capture hash, chained reviews and tamper tests |
 | Operator and detector audit | Implemented | Hash-chained JSONL audit and verification endpoint |
 | Local-only default and bounded retention | Implemented | Loopback bind, no cloud dependency, configurable age/count limits |
+| Command authorization and receipt origin | Implemented / deployment keying required | Separate operator/detector tokens and optional HMAC receipt signatures |
 | Health, battery and incident telemetry | Implemented | State API, health endpoint and Prometheus metrics |
 | Mobility adapter specification | Software complete / hardware unverified | Installable ROS 2 adapter, velocity limits and watchdog; physical conformance remains Phase 1 |
 | Frigate integration | Software complete / deployment unverified | MQTT adapter, authenticated detection endpoint and example profile |

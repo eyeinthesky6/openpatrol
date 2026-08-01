@@ -2,6 +2,8 @@
 
 All mutation bodies use `application/json`. Errors have the shape `{"error":{"code":"...","message":"..."}}` and bodies are limited to 64 KiB.
 
+When `OPENPATROL_OPERATOR_TOKEN` is configured, command and review mutations require `Authorization: Bearer …`. Detector ingestion always requires its separate `OPENPATROL_INGEST_TOKEN`.
+
 - `GET /api/v1/health` — liveness and runtime mode
 - `GET /api/v1/state` — robot, map and incident snapshot
 - `POST /api/v1/commands` — `{"action":"pause|resume|return|estop|reset-estop"}`

@@ -44,10 +44,14 @@ Create a reproducible source archive with `./scripts/release.sh`.
 | `OPENPATROL_SCENARIO` | `./scenarios/warehouse.json` | Simulation scenario |
 | `OPENPATROL_TICK_SECONDS` | `0.4` | Simulation tick interval |
 | `OPENPATROL_INGEST_TOKEN` | unset | Bearer token enabling `/api/v1/detections` |
+| `OPENPATROL_OPERATOR_TOKEN` | unset | Bearer token protecting commands and incident review |
+| `OPENPATROL_SIGNING_KEY` | unset | Secret used to authenticate receipt origin with HMAC-SHA256 |
 | `OPENPATROL_RETENTION_DAYS` | `30` | Maximum local evidence age |
 | `OPENPATROL_MAX_RECORDS` | `5000` | Hard cap on local evidence receipts |
 
 The external ingestion body requires `id`, `event_type`, `title`, `severity` and `confidence`. See [`docs/integrations.md`](docs/integrations.md) and [`docs/api.md`](docs/api.md).
+
+For LAN deployment, set both tokens and place the service behind an authenticated TLS gateway or VPN. The bundled browser UI is intended for loopback/local use; a production gateway should inject or broker operator authorization rather than embedding secrets in frontend code.
 
 Repository map: `hardware/` contains editable mechanical source and BOM; `ros2/` contains the ROS 2 Jazzy adapter; `deploy/frigate/` contains an integration profile; `schemas/` contains portable JSON contracts; `docs/product-requirements.md` tracks every product-note claim.
 

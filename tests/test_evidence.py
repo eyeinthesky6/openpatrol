@@ -32,6 +32,13 @@ class EvidenceTest(unittest.TestCase):
             store = EvidenceStore(Path(directory)); args=dict(robot_id="r",site_id="s",lap=0,waypoint={"id":"a","x":0,"y":0},event={"id":"e","event_type":"person","title":"P","severity":"low","confidence":.5})
             self.assertNotEqual(store.create(**args)["event_id"], store.create(**args)["event_id"])
 
+    def test_optional_signature_proves_key_possession(self):
+        with tempfile.TemporaryDirectory() as directory:
+            store=EvidenceStore(Path(directory),signing_key="device-secret")
+            receipt=store.create(robot_id="r",site_id="s",lap=0,waypoint={"id":"a","x":0,"y":0},event={"id":"e","event_type":"person","title":"P","severity":"low","confidence":.5})
+            self.assertTrue(store.verify(receipt)["signature_valid"])
+            self.assertFalse(EvidenceStore(Path(directory),signing_key="wrong").verify(receipt)["valid"])
+
     def test_canonical_representation_is_order_independent(self):
         self.assertEqual(canonical_bytes({"a":1,"b":2}), canonical_bytes({"b":2,"a":1}))
 

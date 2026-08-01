@@ -22,6 +22,7 @@ MAX_BODY = 64 * 1024
 class AppHandler(SimpleHTTPRequestHandler):
     simulator: PatrolSimulator
     ingest_token = ""
+    operator_token = ""
     audit: AuditLog
     started_at = time.monotonic()
 
@@ -62,6 +63,7 @@ class AppHandler(SimpleHTTPRequestHandler):
         try:
             body = self._body()
             if path in {"/api/patrol", "/api/v1/commands"}:
+                if not self._operator_authorized(): return self._error(HTTPStatus.UNAUTHORIZED, "unauthorized", "Operator token is required")
                 if body.get("action"):
                     action = body["action"]
                 elif body.get("status") in {"patrolling", "paused"}:
@@ -72,6 +74,7 @@ class AppHandler(SimpleHTTPRequestHandler):
                 self.audit.append("robot.command", actor=str(body.get("actor", "local-operator")), details={"command": action, "result": self.simulator.status})
                 return self._json(self.simulator.state())
             if (path.startswith("/api/incidents/") or path.startswith("/api/v1/incidents/")) and path.endswith("/review"):
+                if not self._operator_authorized(): return self._error(HTTPStatus.UNAUTHORIZED, "unauthorized", "Operator token is required")
                 event_id = path.split("/")[-2]
                 receipt = self.simulator.evidence.update_review(event_id, str(body.get("disposition", "")), str(body.get("note", "")), str(body.get("actor", "local-operator")))
                 self.audit.append("incident.review", actor=str(body.get("actor", "local-operator")), details={"event_id": event_id, "disposition": body.get("disposition")})
@@ -110,6 +113,9 @@ class AppHandler(SimpleHTTPRequestHandler):
         if length > MAX_BODY: raise ValueError("request body is too large")
         return json.loads(self.rfile.read(length) or b"{}")
 
+    def _operator_authorized(self):
+        return not self.operator_token or self.headers.get("Authorization") == f"Bearer {self.operator_token}"
+
     def _error(self, status, code, message):
         return self._json({"error": {"code": code, "message": message}}, status)
 
@@ -125,9 +131,9 @@ class AppHandler(SimpleHTTPRequestHandler):
 def create_server(host="127.0.0.1", port=8765, *, data=None, scenario=None, ingest_token=""):
     scenario_path = Path(scenario or os.getenv("OPENPATROL_SCENARIO", ROOT / "scenarios" / "warehouse.json"))
     data_path = Path(data or os.getenv("OPENPATROL_DATA", ROOT / "runtime"))
-    evidence = EvidenceStore(data_path / "evidence", retention_days=int(os.getenv("OPENPATROL_RETENTION_DAYS", "30")), max_records=int(os.getenv("OPENPATROL_MAX_RECORDS", "5000")))
+    evidence = EvidenceStore(data_path / "evidence", retention_days=int(os.getenv("OPENPATROL_RETENTION_DAYS", "30")), max_records=int(os.getenv("OPENPATROL_MAX_RECORDS", "5000")), signing_key=os.getenv("OPENPATROL_SIGNING_KEY", ""))
     simulator = PatrolSimulator(load_scenario(scenario_path), evidence)
-    handler = type("ConfiguredAppHandler", (AppHandler,), {"simulator": simulator, "audit": AuditLog(data_path / "audit.jsonl"), "ingest_token": ingest_token or os.getenv("OPENPATROL_INGEST_TOKEN", ""), "started_at": time.monotonic()})
+    handler = type("ConfiguredAppHandler", (AppHandler,), {"simulator": simulator, "audit": AuditLog(data_path / "audit.jsonl"), "ingest_token": ingest_token or os.getenv("OPENPATROL_INGEST_TOKEN", ""), "operator_token": os.getenv("OPENPATROL_OPERATOR_TOKEN", ""), "started_at": time.monotonic()})
     return ThreadingHTTPServer((host, port), handler), simulator
 
 

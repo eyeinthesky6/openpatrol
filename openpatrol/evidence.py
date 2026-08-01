@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import hashlib
+import hmac
 import json
 import threading
 import uuid
@@ -20,12 +21,13 @@ def _digest(payload: dict[str, Any]) -> str:
 class EvidenceStore:
     """Atomic, tamper-evident JSON receipts with an append-only review trail."""
 
-    def __init__(self, directory: Path, *, retention_days: int = 30, max_records: int = 5000):
+    def __init__(self, directory: Path, *, retention_days: int = 30, max_records: int = 5000, signing_key: str = ""):
         self.directory = directory
         self.directory.mkdir(parents=True, exist_ok=True)
         self._lock = threading.RLock()
         self.retention_days = max(1, retention_days)
         self.max_records = max(10, max_records)
+        self.signing_key = signing_key.encode("utf-8")
 
     def create(self, *, robot_id: str, site_id: str, lap: int, waypoint: dict[str, Any], event: dict[str, Any], source: str = "synthetic-scenario", media: dict[str, Any] | None = None) -> dict[str, Any]:
         now = datetime.now(timezone.utc)
@@ -51,6 +53,9 @@ class EvidenceStore:
             "review": {"status": "pending", "disposition": None, "note": None, "reviewed_at": None},
             "audit": [],
         }
+        if self.signing_key:
+            receipt["integrity"]["signature"] = hmac.new(self.signing_key, receipt["integrity"]["digest"].encode("ascii"), hashlib.sha256).hexdigest()
+            receipt["integrity"]["signature_algorithm"] = "hmac-sha256"
         with self._lock:
             self._write(receipt)
             self.prune()
@@ -89,7 +94,11 @@ class EvidenceStore:
                 audit_valid = False
                 break
             previous = claimed
-        return {"valid": capture_valid and audit_valid, "capture_valid": capture_valid, "audit_valid": audit_valid, "event_id": receipt.get("event_id")}
+        signature = receipt.get("integrity", {}).get("signature")
+        signature_valid = None
+        if signature is not None:
+            signature_valid = bool(self.signing_key) and hmac.compare_digest(signature, hmac.new(self.signing_key, receipt["integrity"]["digest"].encode("ascii"), hashlib.sha256).hexdigest())
+        return {"valid": capture_valid and audit_valid and signature_valid is not False, "capture_valid": capture_valid, "audit_valid": audit_valid, "signature_valid": signature_valid, "event_id": receipt.get("event_id")}
 
     def list(self) -> list[dict[str, Any]]:
         with self._lock:

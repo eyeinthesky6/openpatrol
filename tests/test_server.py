@@ -12,18 +12,22 @@ from openpatrol.server import ROOT, create_server
 class ServerTest(unittest.TestCase):
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
+        self.previous_operator = __import__('os').environ.get("OPENPATROL_OPERATOR_TOKEN"); __import__('os').environ["OPENPATROL_OPERATOR_TOKEN"]="operator-secret"
         self.server, self.sim = create_server("127.0.0.1", 0, data=Path(self.temp.name), scenario=ROOT/"scenarios"/"warehouse.json", ingest_token="secret")
         self.thread = threading.Thread(target=self.server.serve_forever, daemon=True); self.thread.start()
         self.base = f"http://127.0.0.1:{self.server.server_address[1]}"
 
     def tearDown(self):
         self.server.shutdown(); self.server.server_close(); self.thread.join(); self.temp.cleanup()
+        if self.previous_operator is None: __import__('os').environ.pop("OPENPATROL_OPERATOR_TOKEN",None)
+        else: __import__('os').environ["OPENPATROL_OPERATOR_TOKEN"]=self.previous_operator
 
     def request(self, path, body=None, token=None):
         headers={}
         data=None
         if body is not None: data=json.dumps(body).encode(); headers["Content-Type"]="application/json"
         if token: headers["Authorization"]=f"Bearer {token}"
+        elif path in {"/api/v1/commands","/api/patrol"} or path.endswith("/review"): headers["Authorization"]="Bearer operator-secret"
         with urllib.request.urlopen(urllib.request.Request(self.base+path,data=data,headers=headers),timeout=2) as response:
             return response.status, json.load(response), response.headers
 
@@ -48,6 +52,10 @@ class ServerTest(unittest.TestCase):
     def test_invalid_legacy_status_is_rejected(self):
         with self.assertRaises(urllib.error.HTTPError) as caught: self.request("/api/patrol",{"status":"flying"})
         self.assertEqual(400,caught.exception.code)
+
+    def test_mutation_rejects_wrong_operator_token(self):
+        with self.assertRaises(urllib.error.HTTPError) as caught: self.request("/api/v1/commands",{"action":"pause"},"wrong")
+        self.assertEqual(401,caught.exception.code)
 
 
 if __name__ == "__main__": unittest.main()
