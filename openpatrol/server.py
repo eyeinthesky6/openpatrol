@@ -132,7 +132,7 @@ def create_server(host="127.0.0.1", port=8765, *, data=None, scenario=None, inge
     scenario_path = Path(scenario or os.getenv("OPENPATROL_SCENARIO", ROOT / "scenarios" / "warehouse.json"))
     data_path = Path(data or os.getenv("OPENPATROL_DATA", ROOT / "runtime"))
     evidence = EvidenceStore(data_path / "evidence", retention_days=int(os.getenv("OPENPATROL_RETENTION_DAYS", "30")), max_records=int(os.getenv("OPENPATROL_MAX_RECORDS", "5000")), signing_key=os.getenv("OPENPATROL_SIGNING_KEY", ""))
-    simulator = PatrolSimulator(load_scenario(scenario_path), evidence)
+    simulator = PatrolSimulator(load_scenario(scenario_path), evidence, state_path=data_path / "runtime-state.json")
     handler = type("ConfiguredAppHandler", (AppHandler,), {"simulator": simulator, "audit": AuditLog(data_path / "audit.jsonl"), "ingest_token": ingest_token or os.getenv("OPENPATROL_INGEST_TOKEN", ""), "operator_token": os.getenv("OPENPATROL_OPERATOR_TOKEN", ""), "started_at": time.monotonic()})
     return ThreadingHTTPServer((host, port), handler), simulator
 

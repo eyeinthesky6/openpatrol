@@ -20,6 +20,7 @@ This matrix prevents roadmap claims from being mistaken for shipped capability.
 | Original CAD, wiring and BOM | Parametric reference supplied | OpenSCAD base/payload source, BOM and stop-chain spec; fabrication dimensions require selected supplier parts |
 | Privacy masking and encryption at rest | Not claimed | Required before real-person or sensitive-site recording |
 | Reproducibility by an external builder | Package complete / independent result pending | One-command checks and deterministic source archive; external builder must record result |
+| Production-like software endurance | Implemented | Isolated accelerated eight-hour exercise with physical-distance, safety, restart, evidence and audit invariants |
 
 ## Next build order
 

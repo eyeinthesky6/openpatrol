@@ -34,6 +34,8 @@ Run all verification with `./scripts/check.sh` or `python3 -m unittest discover 
 
 Create a reproducible source archive with `./scripts/release.sh`.
 
+Run a production-like accelerated eight-hour shift with `python3 -m openpatrol.exercise`. It injects detector events, E-stops, localization faults, charge cycles and a restart, then writes a machine-readable acceptance report. See [`docs/simulation-exercise.md`](docs/simulation-exercise.md).
+
 ## Configuration
 
 | Variable | Default | Purpose |

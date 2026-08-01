@@ -1,8 +1,11 @@
 from __future__ import annotations
 
 import math
+import json
 import threading
+import uuid
 from dataclasses import asdict
+from pathlib import Path
 from typing import Any
 
 from .evidence import EvidenceStore
@@ -12,20 +15,24 @@ from .scenario import Scenario
 class PatrolSimulator:
     LOW_BATTERY = 18.0
 
-    def __init__(self, scenario: Scenario, evidence: EvidenceStore, robot_id: str = "openpatrol-one"):
+    def __init__(self, scenario: Scenario, evidence: EvidenceStore, robot_id: str = "openpatrol-one", state_path: Path | None = None):
         self.scenario, self.evidence, self.robot_id = scenario, evidence, robot_id
         first = scenario.waypoints[0]
         self.x, self.y = first.x, first.y
         self.target_index, self.current_waypoint, self.dwell_remaining = 1, first.id, first.dwell_ticks
         self.lap, self.battery, self.distance, self.tick_count = 0, 100.0, 0.0, 0
-        self.status, self.speed, self.fault = "patrolling", 1.8, None
+        # Default server tick is 0.4 s, so 0.2 m/tick models the 0.5 m/s indoor limit.
+        self.status, self.speed, self.fault = "patrolling", 0.2, None
         self._emitted: dict[str, int] = {}
         self._lock = threading.RLock()
+        self.state_path = state_path
+        self._restore()
 
     def tick(self) -> None:
         with self._lock:
             if self.status == "docked":
-                self.battery = min(100.0, self.battery + 0.5)
+                self.battery = min(100.0, self.battery + 0.02)
+                self._persist()
                 return
             if self.status not in {"patrolling", "returning"}:
                 return
@@ -39,8 +46,10 @@ class PatrolSimulator:
             target = self.scenario.waypoints[self.target_index]
             dx, dy = target.x - self.x, target.y - self.y
             remaining = math.hypot(dx, dy)
+            moved = 0.0
             if remaining <= self.speed:
                 self.distance += remaining
+                moved = remaining
                 self.x, self.y, self.current_waypoint = target.x, target.y, target.id
                 if self.status == "returning" and self.target_index == 0:
                     self.status, self.dwell_remaining = "docked", 0
@@ -54,8 +63,10 @@ class PatrolSimulator:
                 self.x += dx / remaining * self.speed
                 self.y += dy / remaining * self.speed
                 self.distance += self.speed
+                moved = self.speed
                 self.current_waypoint = None
-            self.battery = max(5.0, 100.0 - self.distance * 0.018)
+            self.battery = max(5.0, self.battery - moved * 0.018)
+            if self.tick_count % 10 == 0: self._persist()
 
     def command(self, action: str) -> None:
         with self._lock:
@@ -71,8 +82,13 @@ class PatrolSimulator:
                 self.status, self.fault = "patrolling", None
             elif action == "return" and self.status not in {"estopped", "fault"}:
                 self.status, self.target_index, self.dwell_remaining = "returning", 0, 0
+            elif action in {"inject-localization-fault", "inject-drive-fault"}:
+                self.status, self.fault = "fault", action.removeprefix("inject-").replace("-", " ")
+            elif action == "clear-fault" and self.status == "fault":
+                self.status, self.fault = "paused", None
             else:
                 raise ValueError(f"command {action!r} is not allowed while {self.status}")
+            self._persist()
 
     def set_status(self, status: str) -> None:
         self.command("resume" if status == "patrolling" else "pause")
@@ -104,3 +120,18 @@ class PatrolSimulator:
                 "site": {"id": self.scenario.site_id, "name": self.scenario.name, "width": self.scenario.width, "height": self.scenario.height, "waypoints": [asdict(item) for item in self.scenario.waypoints]},
                 "incidents": self.evidence.list(),
             }
+
+    def _persist(self) -> None:
+        if not self.state_path: return
+        payload={"schema_version":1,"x":self.x,"y":self.y,"target_index":self.target_index,"current_waypoint":self.current_waypoint,"dwell_remaining":self.dwell_remaining,"lap":self.lap,"battery":self.battery,"distance":self.distance,"tick_count":self.tick_count,"status":self.status}
+        self.state_path.parent.mkdir(parents=True,exist_ok=True); temp=self.state_path.with_suffix(f".{uuid.uuid4().hex}.tmp"); temp.write_text(json.dumps(payload),encoding="utf-8"); temp.replace(self.state_path)
+
+    def _restore(self) -> None:
+        if not self.state_path or not self.state_path.exists(): return
+        try:
+            payload=json.loads(self.state_path.read_text(encoding="utf-8"))
+            if payload.get("schema_version")!=1: return
+            self.x=float(payload["x"]); self.y=float(payload["y"]); self.target_index=int(payload["target_index"])%len(self.scenario.waypoints); self.current_waypoint=payload.get("current_waypoint"); self.dwell_remaining=max(0,int(payload["dwell_remaining"])); self.lap=max(0,int(payload["lap"])); self.battery=max(5.0,min(100.0,float(payload["battery"]))); self.distance=max(0.0,float(payload["distance"])); self.tick_count=max(0,int(payload["tick_count"])); previous=payload.get("status")
+            self.status="docked" if previous=="docked" else "paused"; self.fault=None if previous=="docked" else "restart requires operator resume"
+        except (OSError,ValueError,TypeError,KeyError,json.JSONDecodeError):
+            self.status,self.fault="fault","runtime state could not be restored"

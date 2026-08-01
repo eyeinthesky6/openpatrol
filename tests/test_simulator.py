@@ -12,7 +12,7 @@ class SimulatorTest(unittest.TestCase):
         scenario=Scenario("s","test",20,20,(Waypoint("a",0,0,0),Waypoint("b",2,0,1)),(SyntheticEvent("e","b","person","Detected","high",.9,2),))
         with tempfile.TemporaryDirectory() as directory:
             sim=PatrolSimulator(scenario,EvidenceStore(Path(directory)))
-            for _ in range(8): sim.tick()
+            for _ in range(30): sim.tick()
             state=sim.state()
             self.assertGreaterEqual(state["robot"]["lap"],1)
             self.assertEqual(1,len(state["incidents"]))
@@ -38,17 +38,25 @@ class SimulatorTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             sim=PatrolSimulator(scenario,EvidenceStore(Path(directory)))
             sim.tick(); sim.command("return")
-            for _ in range(10): sim.tick()
+            for _ in range(70): sim.tick()
             self.assertEqual("docked",sim.state()["robot"]["status"])
 
     def test_dock_charges_gradually_and_enforces_reserve(self):
         scenario=Scenario("s","test",20,20,(Waypoint("dock",0,0,0),Waypoint("b",2,0,0)),())
         with tempfile.TemporaryDirectory() as directory:
             sim=PatrolSimulator(scenario,EvidenceStore(Path(directory))); sim.status="docked"; sim.battery=10
-            sim.tick(); self.assertEqual(10.5,sim.battery)
+            sim.tick(); self.assertEqual(10.02,sim.battery)
             with self.assertRaises(ValueError): sim.command("resume")
-            for _ in range(30): sim.tick()
+            for _ in range(651): sim.tick()
             sim.command("resume"); self.assertEqual("patrolling",sim.status)
+
+    def test_restart_restores_progress_but_requires_safe_resume(self):
+        scenario=Scenario("s","test",20,20,(Waypoint("dock",0,0,0),Waypoint("b",10,0,0)),())
+        with tempfile.TemporaryDirectory() as directory:
+            path=Path(directory)/"state.json"; evidence=EvidenceStore(Path(directory)/"evidence"); sim=PatrolSimulator(scenario,evidence,state_path=path)
+            for _ in range(20): sim.tick()
+            sim.command("pause"); before=sim.state()["robot"]; restored=PatrolSimulator(scenario,evidence,state_path=path); after=restored.state()["robot"]
+            self.assertEqual("paused",after["status"]); self.assertAlmostEqual(before["distance"],after["distance"],places=1); self.assertIn("restart",after["fault"])
 
 
 if __name__ == "__main__": unittest.main()
