@@ -29,12 +29,15 @@ docker compose up --build
 - installable ROS 2 Jazzy safety-adapter package and optional Frigate MQTT bridge
 - parametric reference-base/payload CAD, India-oriented BOM, stop-chain wiring and physical validation protocol
 - unit, state-machine, evidence-tamper and live HTTP integration tests
+- deterministic virtual hardware, ROS 2 mock controllers and a Gazebo Harmonic warehouse digital twin
 
 Run all verification with `./scripts/check.sh` or `python3 -m unittest discover -s tests -v`.
 
 Create a reproducible source archive with `./scripts/release.sh`.
 
 Run a production-like accelerated eight-hour shift with `python3 -m openpatrol.exercise`. It injects detector events, E-stops, localization faults, charge cycles and a restart, then writes a machine-readable acceptance report. See [`docs/simulation-exercise.md`](docs/simulation-exercise.md).
+
+Run the dependency-free hardware acceptance suite with `python3 -m openpatrol.hardware_harness`. For ROS 2 mock hardware and Gazebo instructions, see [`docs/virtual-hardware.md`](docs/virtual-hardware.md).
 
 ## Configuration
 
@@ -55,7 +58,7 @@ The external ingestion body requires `id`, `event_type`, `title`, `severity` and
 
 For LAN deployment, set both tokens and place the service behind an authenticated TLS gateway or VPN. The bundled browser UI is intended for loopback/local use; a production gateway should inject or broker operator authorization rather than embedding secrets in frontend code.
 
-Repository map: `hardware/` contains editable mechanical source and BOM; `ros2/` contains the ROS 2 Jazzy adapter; `deploy/frigate/` contains an integration profile; `schemas/` contains portable JSON contracts; `docs/product-requirements.md` tracks every product-note claim.
+Repository map: `hardware/` contains editable mechanical source and BOM; `ros2/` contains the ROS 2 Jazzy adapter and simulation package; `deploy/frigate/` contains an integration profile; `schemas/` contains portable JSON contracts; `docs/product-requirements.md` tracks every product-note claim.
 
 For day-to-day use see [`docs/operator-guide.md`](docs/operator-guide.md). Physical builders must execute [`docs/safety-validation.md`](docs/safety-validation.md) and publish measured results; an unchecked box is not a passed safety test.
 

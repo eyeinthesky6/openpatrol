@@ -26,7 +26,7 @@ Place OpenPatrol behind a TLS reverse proxy on a trusted VLAN or VPN. Do not exp
 
 ## 3. Validate before connecting motors
 
-Run `./scripts/check.sh` and the eight-hour software exercise from `docs/simulation-exercise.md`. Then follow `docs/safety-validation.md` with wheels lifted, an exclusion zone and a physical E-stop. Software success does not waive physical validation.
+Run `./scripts/check.sh`, the virtual hardware suite in `docs/virtual-hardware.md` and the eight-hour software exercise from `docs/simulation-exercise.md`. Progress from deterministic hardware to ROS mock hardware and then Gazebo before connecting motors. Then follow `docs/safety-validation.md` with wheels lifted, an exclusion zone and a physical E-stop. Software success does not waive physical validation.
 
 ## 4. Attach Frigate
 
@@ -34,7 +34,7 @@ Install `pip install 'openpatrol[mqtt]'`, copy the examples under `deploy/frigat
 
 ## 5. Attach ROS 2
 
-Copy `ros2/openpatrol_adapter` into a ROS 2 Jazzy workspace and build with `colcon build --packages-select openpatrol_adapter`. Validate `/hardware/estop`, `/battery_state`, `/cmd_vel_safe` and the 250 ms motor-controller watchdog before allowing floor motion.
+Copy both packages under `ros2/` into a ROS 2 Jazzy workspace and build with `colcon build --packages-select openpatrol_adapter openpatrol_simulation`. Start with `mock_hardware.launch.py`, then `gazebo.launch.py`. Validate `/hardware/estop`, `/battery_state`, `/cmd_vel_safe` and the 250 ms motor-controller watchdog before allowing floor motion.
 
 ## 6. Operate
 
