@@ -33,7 +33,7 @@ ros2 launch openpatrol_simulation gazebo.launch.py
 ros2 run openpatrol_adapter safety_adapter
 ```
 
-Publish `false` to `/hardware/estop`, then command `/cmd_vel`. The safety adapter is the only path to `/cmd_vel_safe`; Gazebo consumes that safe topic and publishes `/odom`, `/scan`, `/imu` and `/camera/image_raw`. The warehouse world contains shelving and a small differential-drive model with sensor noise, friction and mass.
+Publish `false` to `/hardware/estop`, then command `/cmd_vel`. The safety adapter is the only path to `/cmd_vel_safe`; Gazebo consumes that safe topic and publishes `/odom`, `/imu` and `/camera/image_raw`. A deterministic 2-D ray-cast node publishes `/scan` from the bounded warehouse geometry. This avoids GPU-renderer differences on hosted runners while exercising the exact `LaserScan` contract used by a physical lidar. The warehouse world contains shelving and a small differential-drive model with sensor noise, friction and mass.
 
 Useful acceptance checks:
 

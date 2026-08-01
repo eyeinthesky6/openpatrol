@@ -35,5 +35,8 @@ class RosAssetsTest(unittest.TestCase):
         for value in ("navigation.launch.py","ros_navigation_smoke.py","/navigate_to_pose","/follow_waypoints","/map"): self.assertIn(value,workflow+smoke)
         odom_tf=(ROOT/"ros2/openpatrol_adapter/openpatrol_adapter/odom_tf.py").read_text()
         for value in ("TransformBroadcaster","/odom","base_link","math.isfinite"): self.assertIn(value,odom_tf)
+        virtual_lidar=(ROOT/"ros2/openpatrol_adapter/openpatrol_adapter/virtual_lidar.py").read_text()
+        for value in ("wall_range","LaserScan","/scan","360"): self.assertIn(value,virtual_lidar)
+        self.assertIn("virtual_lidar",(ROOT/"ros2/openpatrol_simulation/launch/gazebo_headless.launch.py").read_text())
 
 if __name__=="__main__": unittest.main()

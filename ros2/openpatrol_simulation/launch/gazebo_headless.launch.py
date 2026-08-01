@@ -15,4 +15,5 @@ def generate_launch_description():
         IncludeLaunchDescription(PythonLaunchDescriptionSource(str(gz/"launch/gz_sim.launch.py")),launch_arguments={"gz_args":f"-s -r --headless-rendering {share/'worlds/warehouse.sdf'}"}.items()),
         Node(package="ros_gz_bridge",executable="parameter_bridge",parameters=[{"config_file":str(share/"config/bridge.yaml")}],output="screen"),
         Node(package="openpatrol_adapter",executable="odom_tf",parameters=[{"use_sim_time":True}],output="screen"),
+        Node(package="openpatrol_adapter",executable="virtual_lidar",parameters=[{"use_sim_time":True}],output="screen"),
     ])
