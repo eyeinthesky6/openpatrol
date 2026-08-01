@@ -38,7 +38,9 @@ try:
         node.drive.publish(command)
         rclpy.spin_once(node,timeout_sec=.2)
         navigate_ready=node.navigate.server_is_ready(); waypoints_ready=node.waypoints.server_is_ready()
-        if node.maps and node.cells and navigate_ready and waypoints_ready: break
+        # Action servers can be discoverable while their lifecycle nodes are
+        # still transitioning. Give the complete Nav2 graph time to activate.
+        if time.monotonic()-started>=20 and node.maps and node.cells and navigate_ready and waypoints_ready: break
     node.drive.publish(Twist())
     def active(client):
         if not client.wait_for_service(timeout_sec=2): return False
