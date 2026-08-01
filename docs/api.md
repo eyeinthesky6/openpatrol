@@ -13,5 +13,8 @@ When `OPENPATROL_OPERATOR_TOKEN` is configured, command and review mutations req
 - `POST /api/v1/detections` — authenticated normalized external detection; requires `Authorization: Bearer $OPENPATROL_INGEST_TOKEN`
 - `GET /metrics` — Prometheus text exposition
 - `GET /api/v1/audit/verify` — verify the operational audit hash chain
+- `GET /api/v1/diagnostics` — storage, navigation, camera, receipt and audit health
+- `GET /api/v1/settings` — safe policy settings and authentication capability state
+- `POST /api/v1/settings` — operator-authenticated retention, receipt cap, speed and timezone update
 
 `/api/state`, `/api/health`, `/api/patrol` and the legacy review route remain compatible during the v1 transition.

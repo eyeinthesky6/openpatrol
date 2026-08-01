@@ -27,7 +27,7 @@ class ServerTest(unittest.TestCase):
         data=None
         if body is not None: data=json.dumps(body).encode(); headers["Content-Type"]="application/json"
         if token: headers["Authorization"]=f"Bearer {token}"
-        elif path in {"/api/v1/commands","/api/patrol"} or path.endswith("/review"): headers["Authorization"]="Bearer operator-secret"
+        elif path in {"/api/v1/commands","/api/patrol","/api/v1/settings"} or path.endswith("/review"): headers["Authorization"]="Bearer operator-secret"
         with urllib.request.urlopen(urllib.request.Request(self.base+path,data=data,headers=headers),timeout=2) as response:
             return response.status, json.load(response), response.headers
 
@@ -56,6 +56,12 @@ class ServerTest(unittest.TestCase):
     def test_mutation_rejects_wrong_operator_token(self):
         with self.assertRaises(urllib.error.HTTPError) as caught: self.request("/api/v1/commands",{"action":"pause"},"wrong")
         self.assertEqual(401,caught.exception.code)
+
+    def test_diagnostics_and_persistent_settings(self):
+        diagnostics=self.request("/api/v1/diagnostics")[1]
+        self.assertEqual("simulation",diagnostics["mode"]); self.assertIn("storage",diagnostics); self.assertTrue(diagnostics["integrity"]["audit_valid"])
+        saved=self.request("/api/v1/settings",{"retention_days":14,"max_records":200,"max_speed_mps":.25,"site_timezone":"Asia/Kolkata"})[1]
+        self.assertTrue(saved["saved"]); self.assertEqual(14,self.request("/api/v1/settings")[1]["retention_days"]); self.assertAlmostEqual(.1,self.sim.speed)
 
 
 if __name__ == "__main__": unittest.main()

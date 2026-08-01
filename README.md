@@ -59,6 +59,8 @@ Repository map: `hardware/` contains editable mechanical source and BOM; `ros2/`
 
 For day-to-day use see [`docs/operator-guide.md`](docs/operator-guide.md). Physical builders must execute [`docs/safety-validation.md`](docs/safety-validation.md) and publish measured results; an unchecked box is not a passed safety test.
 
+New users should start with [`docs/setup-guide.md`](docs/setup-guide.md). The dashboard and operational safeguards are informed by recurring real-world failures documented in [`docs/competitive-lessons.md`](docs/competitive-lessons.md).
+
 ## Project boundaries
 
 The included E-stop is a product-state demonstration. A physical robot requires a hardwired power interruption and motor-controller watchdog independent of Linux, Wi-Fi and this UI. OpenPatrol excludes weapons, pursuit, deliberate contact, face recognition and covert monitoring; deploy only with authorization, notices, retention rules and applicable privacy law.
