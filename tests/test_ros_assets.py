@@ -19,5 +19,11 @@ class RosAssetsTest(unittest.TestCase):
         path=ROOT/"ros2/openpatrol_adapter/openpatrol_adapter/limits.py"; spec=importlib.util.spec_from_file_location("limits",path); module=importlib.util.module_from_spec(spec); spec.loader.exec_module(module)
         self.assertEqual((.5,-1),module.clamp_command(5,-3,.5,1))
         with self.assertRaises(ValueError): module.clamp_command(float("nan"),0,.5,1)
+    def test_headless_ci_exercises_motion_sensors_and_watchdog(self):
+        workflow=(ROOT/".github/workflows/ros-gazebo.yml").read_text(); probe=(ROOT/"scripts/ros_gazebo_smoke.py").read_text()
+        for value in ("gazebo_headless.launch.py","safety_adapter","ros_gazebo_smoke.py","upload-artifact"):
+            self.assertIn(value,workflow)
+        for value in ("/odom","/scan","/cmd_vel_safe","moved>=.05","safe_zero_after_drive"):
+            self.assertIn(value,probe)
 
 if __name__=="__main__": unittest.main()

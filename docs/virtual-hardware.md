@@ -50,3 +50,9 @@ Stop publishing and confirm `/cmd_vel_safe` becomes zero within 250 ms. Repeat w
 ## Pass boundary
 
 A virtual pass proves software wiring and expected fault responses. It does not prove tyre grip, braking distance, motor torque, centre-of-gravity stability, real sensor blind spots, wireless coverage, battery range or charger alignment. Those remain physical acceptance tests.
+
+## GitHub Actions
+
+`.github/workflows/ros-gazebo.yml` runs Level 3 headlessly on Ubuntu 24.04. It installs ROS 2 Jazzy and Gazebo Harmonic using their maintained setup actions, resolves package dependencies, builds both packages and starts the real Gazebo world plus safety adapter. The black-box probe requires at least three LiDAR scans, at least 5 cm of odometry movement and a zero safe-velocity output after command traffic stops. Logs are retained as a workflow artifact for 14 days even when the job fails.
+
+This heavyweight job has a 20-minute limit and is separate from the fast Python test job. The workflow can also be started manually using `workflow_dispatch`.

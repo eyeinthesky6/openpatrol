@@ -1,0 +1,63 @@
+name: ROS 2 Gazebo
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  headless-hardware-smoke:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    container:
+      image: ubuntu:noble
+    env:
+      ROS_DISTRO: jazzy
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20.x"
+      - name: Install ROS 2 Jazzy
+        uses: ros-tooling/setup-ros@v0.7
+        with:
+          required-ros-distributions: jazzy
+      - name: Install Gazebo Harmonic and ros_gz
+        uses: gazebo-tooling/setup-gazebo@v0.3.0
+        with:
+          required-gazebo-distributions: harmonic
+          install-ros-gz: jazzy
+      - name: Install workspace dependencies
+        shell: bash
+        run: |
+          source /opt/ros/jazzy/setup.bash
+          apt-get update
+          rosdep install --from-paths ros2 --ignore-src --rosdistro jazzy -r -y
+      - name: Build ROS workspace
+        shell: bash
+        run: |
+          source /opt/ros/jazzy/setup.bash
+          colcon build --base-paths ros2 --event-handlers console_direct+
+      - name: Run headless Gazebo hardware smoke test
+        shell: bash
+        run: |
+          source /opt/ros/jazzy/setup.bash
+          source install/setup.bash
+          mkdir -p runtime/ros-ci
+          ros2 launch openpatrol_simulation gazebo_headless.launch.py >runtime/ros-ci/gazebo.log 2>&1 &
+          gazebo_pid=$!
+          ros2 run openpatrol_adapter safety_adapter >runtime/ros-ci/adapter.log 2>&1 &
+          adapter_pid=$!
+          trap 'kill $gazebo_pid $adapter_pid 2>/dev/null || true' EXIT
+          python3 scripts/ros_gazebo_smoke.py | tee runtime/ros-ci/smoke.log
+      - name: Upload ROS and Gazebo logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ros-gazebo-logs
+          path: runtime/ros-ci
+          if-no-files-found: warn
+          retention-days: 14

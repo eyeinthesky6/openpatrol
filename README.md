@@ -39,6 +39,8 @@ Run a production-like accelerated eight-hour shift with `python3 -m openpatrol.e
 
 Run the dependency-free hardware acceptance suite with `python3 -m openpatrol.hardware_harness`. For ROS 2 mock hardware and Gazebo instructions, see [`docs/virtual-hardware.md`](docs/virtual-hardware.md).
 
+GitHub Actions also builds ROS 2 Jazzy and runs the Gazebo warehouse headlessly. It proves LiDAR delivery, odometry motion through the safety adapter and watchdog stopping, then preserves the simulator logs as an artifact.
+
 ## Configuration
 
 | Variable | Default | Purpose |
