@@ -15,6 +15,8 @@ class RosAssetsTest(unittest.TestCase):
             self.assertIn(value,model+bridge)
         self.assertIn("<max_linear_velocity>0.5</max_linear_velocity>",model)
         self.assertIn("<wheel_separation>0.32</wheel_separation>",model)
+        world=(ROOT/"ros2/openpatrol_simulation/worlds/warehouse.sdf").read_text()
+        self.assertIn("<uri>../models/openpatrol</uri>",world)
     def test_ros_command_limits_reject_non_finite_values(self):
         path=ROOT/"ros2/openpatrol_adapter/openpatrol_adapter/limits.py"; spec=importlib.util.spec_from_file_location("limits",path); module=importlib.util.module_from_spec(spec); spec.loader.exec_module(module)
         self.assertEqual((.5,-1),module.clamp_command(5,-3,.5,1))

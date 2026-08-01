@@ -7,5 +7,5 @@
   <model name="ground"><static>true</static><link name="link"><collision name="collision"><geometry><box><size>20 14 .1</size></box></geometry></collision><visual name="visual"><geometry><box><size>20 14 .1</size></box></geometry><material><diffuse>.18 .2 .22 1</diffuse></material></visual></link></model>
   <model name="shelf_a"><static>true</static><pose>2 1 .75 0 0 0</pose><link name="link"><collision name="collision"><geometry><box><size>4 .6 1.5</size></box></geometry></collision><visual name="visual"><geometry><box><size>4 .6 1.5</size></box></geometry><material><diffuse>.45 .3 .16 1</diffuse></material></visual></link></model>
   <model name="shelf_b"><static>true</static><pose>2 -2 .75 0 0 0</pose><link name="link"><collision name="collision"><geometry><box><size>4 .6 1.5</size></box></geometry></collision><visual name="visual"><geometry><box><size>4 .6 1.5</size></box></geometry><material><diffuse>.45 .3 .16 1</diffuse></material></visual></link></model>
-  <include><uri>model://openpatrol</uri><pose>-3 0 0 0 0 0</pose></include>
+  <include><uri>../models/openpatrol</uri><pose>-3 0 0 0 0 0</pose></include>
 </world></sdf>
