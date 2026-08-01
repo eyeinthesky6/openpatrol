@@ -3,6 +3,8 @@ import json, time
 import rclpy
 from nav_msgs.msg import OccupancyGrid
 from nav2_msgs.action import FollowWaypoints, NavigateToPose
+from geometry_msgs.msg import Twist
+from lifecycle_msgs.srv import GetState
 from rclpy.action import ActionClient
 from rclpy.node import Node
 
@@ -12,20 +14,31 @@ class Probe(Node):
         super().__init__("openpatrol_navigation_smoke")
         self.maps=0; self.cells=0
         self.create_subscription(OccupancyGrid,"/map",self.on_map,10)
+        self.drive=self.create_publisher(Twist,"/cmd_vel",10)
         self.navigate=ActionClient(self,NavigateToPose,"/navigate_to_pose")
         self.waypoints=ActionClient(self,FollowWaypoints,"/follow_waypoints")
+        self.bt_state=self.create_client(GetState,"/bt_navigator/get_state")
+        self.waypoint_state=self.create_client(GetState,"/waypoint_follower/get_state")
     def on_map(self,msg):
         self.maps+=1; self.cells=max(self.cells,len(msg.data))
 
 
-rclpy.init(); node=Probe(); deadline=time.monotonic()+75; navigate_ready=False; waypoints_ready=False
+rclpy.init(); node=Probe(); started=time.monotonic(); deadline=started+75; navigate_ready=False; waypoints_ready=False
 try:
     while time.monotonic()<deadline:
+        command=Twist()
+        if time.monotonic()-started<10: command.angular.z=.25
+        node.drive.publish(command)
         rclpy.spin_once(node,timeout_sec=.2)
         navigate_ready=node.navigate.server_is_ready(); waypoints_ready=node.waypoints.server_is_ready()
         if node.maps and node.cells and navigate_ready and waypoints_ready: break
-    result={"maps":node.maps,"map_cells":node.cells,"navigate_to_pose":navigate_ready,"follow_waypoints":waypoints_ready}
-    if not all((result["maps"]>=1,result["map_cells"]>0,result["navigate_to_pose"],result["follow_waypoints"])):
+    node.drive.publish(Twist())
+    def active(client):
+        if not client.wait_for_service(timeout_sec=2): return False
+        future=client.call_async(GetState.Request()); rclpy.spin_until_future_complete(node,future,timeout_sec=3)
+        return bool(future.done() and future.result() and future.result().current_state.id==3)
+    result={"maps":node.maps,"map_cells":node.cells,"navigate_to_pose":navigate_ready,"follow_waypoints":waypoints_ready,"bt_active":active(node.bt_state),"waypoints_active":active(node.waypoint_state)}
+    if not all((result["maps"]>=1,result["map_cells"]>0,result["navigate_to_pose"],result["follow_waypoints"],result["bt_active"],result["waypoints_active"])):
         raise SystemExit(f"NAVIGATION_SMOKE_FAIL {result}")
     print("NAVIGATION_SMOKE_PASS",json.dumps(result,sort_keys=True))
 finally:
