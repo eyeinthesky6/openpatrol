@@ -1,6 +1,6 @@
 # Reference safety-controller firmware
 
-The `safety_controller/` sketch targets the official Arduino RP2040 core and is compiled in GitHub Actions for a Raspberry Pi Pico. The implementation is in the adjacent `safety_controller.ino` so the complete control and safety logic remains visible without generated code.
+The complete `safety_controller/` sketch targets the official Arduino RP2040 core and is compiled in GitHub Actions for a Raspberry Pi Pico. A convenience symlink at `firmware/safety_controller.ino` keeps the controller source easy to discover from the hardware root.
 
 It implements:
 
