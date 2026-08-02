@@ -25,29 +25,18 @@ export_assembly() {
   local defines=(-D 'part="assembly"')
   [[ "$id" == "sentinel-rev-a" ]] && defines+=(-D 'mast_extension=1')
 
-  # OpenSCAD 2021.01 can return 1 for valid multi-body CSG exports. The gate
-  # therefore validates the artifact itself rather than trusting that exit code.
-  local csg="$out/assembly.csg"
-  if ! openscad -o "$csg" "${defines[@]}" "$preview"; then
-    if [[ ! -s "$csg" ]]; then
-      echo "Assembly CSG export failed for $id" >&2
-      exit 1
-    fi
-    echo "Warning: OpenSCAD returned non-zero after producing $csg; artifact retained and validated." >&2
+  # OpenSCAD 2021.01 sometimes returns 1 after successfully writing a valid
+  # multi-body STL. Engineering acceptance therefore checks the artifact, not
+  # merely the process exit code.
+  local stl="$out/assembly.stl"
+  local rc=0
+  openscad -o "$stl" "${defines[@]}" "$preview" || rc=$?
+  if [[ ! -s "$stl" ]]; then
+    echo "Assembly STL export failed for $id (OpenSCAD exit $rc)" >&2
+    exit 1
   fi
-  [[ -s "$csg" ]] || { echo "Assembly CSG is empty for $id" >&2; exit 1; }
-
-  # A combined STL is convenient for interference review but multi-body visual
-  # assemblies are not fabrication solids. Generate it only when explicitly asked.
-  if [[ "${OPENPATROL_EXPORT_ASSEMBLY_STL:-0}" == "1" ]]; then
-    if ! openscad -o "$out/assembly.stl" "${defines[@]}" "$preview"; then
-      if [[ -s "$out/assembly.stl" ]]; then
-        echo "Warning: OpenSCAD returned non-zero after producing assembly.stl." >&2
-      else
-        rm -f "$out/assembly.stl"
-        echo "Warning: combined assembly STL unavailable; CSG and fabrication parts remain valid." >&2
-      fi
-    fi
+  if [[ "$rc" -ne 0 ]]; then
+    echo "Warning: OpenSCAD exited $rc after producing a non-empty $stl; artifact retained." >&2
   fi
 
   # Product screenshots are useful locally but are not an engineering gate.
@@ -57,7 +46,7 @@ export_assembly() {
       echo "Rendered $out/assembly.png"
     else
       rm -f "$out/assembly.png"
-      echo "Warning: PNG preview unavailable; assembly CSG and fabrication files are valid." >&2
+      echo "Warning: PNG preview unavailable; assembly STL and fabrication files are valid." >&2
     fi
   fi
 }
