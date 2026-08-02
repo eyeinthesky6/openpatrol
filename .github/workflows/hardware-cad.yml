@@ -1,18 +1,8 @@
 name: hardware-cad
-
-on:
-  push:
-  pull_request:
-  workflow_dispatch:
-
-permissions:
-  contents: read
-
+on: [push, pull_request, workflow_dispatch]
+permissions: {contents: read}
 # Previous serial invocation retained for migration/readability tests:
 # xvfb-run -a ./scripts/export-hardware.sh all
-# Individual parts are manufacturing DXF/STL. The complete parametric assembly
-# is checked as CSG; combined multi-body STL and PNG renders remain optional.
-
 jobs:
   export-platform:
     runs-on: ubuntu-latest
@@ -20,37 +10,28 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        platform:
-          - rover-one-rev-a
-          - triscout-rev-a
-          - airscout-rev-a
-          - sentinel-rev-a
+        platform: [rover-one-rev-a, triscout-rev-a, airscout-rev-a, sentinel-rev-a, security-sensor-hub-rev-a]
     steps:
       - uses: actions/checkout@v4
-      - name: Install OpenSCAD
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y openscad
-      - name: Export fabrication pack
-        run: ./scripts/export-hardware.sh "${{ matrix.platform }}"
+      - run: sudo apt-get update && sudo apt-get install -y openscad
+      - run: ./scripts/export-hardware.sh "${{ matrix.platform }}"
       - name: Verify expected artifacts
-        env:
-          PLATFORM: ${{ matrix.platform }}
+        env: {PLATFORM: "${{ matrix.platform }}"}
         run: |
           python - <<'PY'
           import os
           from pathlib import Path
-          platform = os.environ["PLATFORM"]
-          root = Path("dist/hardware") / platform
-          expected = {
-              "rover-one-rev-a": ["lower_deck.dxf", "upper_deck.dxf", "motor_saddle.stl", "camera_bracket.stl", "assembly.csg", "BOM.csv"],
-              "triscout-rev-a": ["lower_deck.dxf", "upper_deck.dxf", "motor_saddle.stl", "camera_bracket.stl", "assembly.csg", "BOM.csv"],
-              "airscout-rev-a": ["lower_plate.dxf", "upper_plate.dxf", "motor_mount.stl", "prop_guard_segment.stl", "shell_top.stl", "assembly.csg", "BOM.csv"],
-              "sentinel-rev-a": ["lower_deck.dxf", "mast_base.dxf", "mast_bushing.stl", "mask_frame.stl", "head_shell.stl", "assembly.csg", "BOM.csv"],
-          }[platform]
-          missing = [str(root / name) for name in expected if not (root / name).is_file() or (root / name).stat().st_size < 32]
-          if missing: raise SystemExit("Missing/empty CAD artifacts:\n" + "\n".join(missing))
-          print(f"Verified {platform}: {len(expected)} required artifacts")
+          p=os.environ['PLATFORM'];root=Path('dist/hardware')/p
+          expected={
+           'rover-one-rev-a':['lower_deck.dxf','upper_deck.dxf','motor_saddle.stl','camera_bracket.stl','assembly.csg','BOM.csv'],
+           'triscout-rev-a':['lower_deck.dxf','upper_deck.dxf','motor_saddle.stl','camera_bracket.stl','assembly.csg','BOM.csv'],
+           'airscout-rev-a':['lower_plate.dxf','upper_plate.dxf','motor_mount.stl','prop_guard_segment.stl','shell_top.stl','assembly.csg','BOM.csv'],
+           'sentinel-rev-a':['lower_deck.dxf','mast_base.dxf','mast_bushing.stl','mask_frame.stl','head_shell.stl','assembly.csg','BOM.csv'],
+           'security-sensor-hub-rev-a':['din_plate.dxf','bottom.stl','lid.stl','assembly.csg','BOM.csv'],
+          }[p]
+          missing=[str(root/n) for n in expected if not (root/n).is_file() or (root/n).stat().st_size<32]
+          if missing:raise SystemExit('Missing/empty CAD artifacts:\n'+'\n'.join(missing))
+          print(f'Verified {p}: {len(expected)} required artifacts')
           PY
       - uses: actions/upload-artifact@v4
         with:
