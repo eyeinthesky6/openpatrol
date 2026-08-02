@@ -4,7 +4,7 @@ OpenPatrol is an open, local-first patrol and security command centre. It combin
 
 ![OpenPatrol ready-to-test prototype family design](docs/assets/openpatrol-hardware-family-concept.svg)
 
-> **Ready-to-test prototype source, not field-certified hardware.** Rover One, TriScout, AirScout, Sentinel and the fixed Security Sensor Hub have inspectable engineering sources. Physical validation and site-specific AI acceptance remain required.
+> **Ready-to-test prototype source, not field-certified hardware.** Rover One, TriScout, AirScout, Sentinel and the fixed Security Sensor Hub have inspectable engineering sources. Every design remains **physically unvalidated** until fabricated units pass the committed acceptance tests; site-specific AI acceptance is also required.
 
 ## Install the lightweight core
 
