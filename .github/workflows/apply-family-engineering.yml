@@ -5,7 +5,7 @@ on:
     branches:
       - agent/complete-airscout-sentinel-family
     paths:
-      - .openpatrol/family-engineering.tar.gz.b64
+      - .openpatrol/READY
 
 permissions:
   contents: write
@@ -24,15 +24,13 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          archive=.openpatrol/family-engineering.tar.gz.b64
-          if [[ ! -f "$archive" ]]; then
+          if [[ ! -f .openpatrol/READY ]]; then
             echo "Overlay already applied."
             exit 0
           fi
-          base64 --decode "$archive" | tar -xzf - -C .
+          cat .openpatrol/family-engineering.part-* | base64 --decode | tar -xzf - -C .
           chmod +x scripts/export-hardware.sh
-          rm -f "$archive"
-          rmdir .openpatrol 2>/dev/null || true
+          rm -rf .openpatrol
           git config user.name "openpatrol-engineering-bot"
           git config user.email "actions@users.noreply.github.com"
           git add -A
