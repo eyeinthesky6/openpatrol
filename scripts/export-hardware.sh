@@ -25,9 +25,9 @@ export_assembly() {
   local defines=(-D 'part="assembly"')
   [[ "$id" == "sentinel-rev-a" ]] && defines+=(-D 'mast_extension=1')
 
-  # CSG proves the complete assembly source parses and is inspectable without
-  # depending on an OpenGL framebuffer. Fabrication CI treats this as mandatory.
-  openscad -o "$out/assembly.csg" "${defines[@]}" "$preview"
+  # A real STL is slower than a parser-only pseudo-artifact, but it is portable,
+  # inspectable and useful to a fabricator for interference review.
+  openscad -o "$out/assembly.stl" "${defines[@]}" "$preview"
 
   # Product screenshots are useful locally but are not an engineering gate.
   # OpenSCAD 2021.01 can return non-zero for headless PNG export even after a
@@ -38,7 +38,7 @@ export_assembly() {
       echo "Rendered $out/assembly.png"
     else
       rm -f "$out/assembly.png"
-      echo "Warning: PNG preview unavailable; assembly.csg and fabrication files are valid." >&2
+      echo "Warning: PNG preview unavailable; fabrication and assembly STL are valid." >&2
     fi
   fi
 }
