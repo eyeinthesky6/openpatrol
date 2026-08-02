@@ -7,8 +7,11 @@ command -v openscad >/dev/null 2>&1 || { echo "OpenSCAD 2021.01+ is required." >
 copy_pack_docs() {
   local id="$1" out="$2"
   for file in BOM.csv README.md wiring.md drawings.md mast-protocol.md; do
-    [[ -f "$root/hardware/$id/$file" ]] && cp "$root/hardware/$id/$file" "$out/"
+    if [[ -f "$root/hardware/$id/$file" ]]; then
+      cp "$root/hardware/$id/$file" "$out/"
+    fi
   done
+  return 0
 }
 
 export_part() {
