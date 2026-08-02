@@ -3,11 +3,13 @@ openpatrol_airscout_state_guard:
     state_topic: /mavros/state
     allowed_modes: [GUIDED, OFFBOARD]
     operator_enable_timeout_ms: 500
+    state_timeout_ms: 2000
 
 openpatrol_airscout_velocity_adapter:
   ros__parameters:
     input_topic: /air/cmd_vel_safe
     mavros_topic: /mavros/setpoint_velocity/cmd_vel
+    health_topic: /air/adapter_state
     command_stale_ms: 500
     max_horizontal_mps: 1.5
     max_vertical_mps: 1.0

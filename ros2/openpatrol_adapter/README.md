@@ -38,7 +38,7 @@ Run MAVROS for the selected ArduPilot/PX4 controller, configure arming/geofence/
 ros2 launch openpatrol_adapter physical_airscout.launch.py
 ```
 
-`mavros_state_guard` is read-only: it authorizes velocity only when MAVROS reports a connected, already-armed GUIDED/OFFBOARD vehicle, an optional `/hardware/estop` is not asserted and a fresh `/air/operator_enable` heartbeat is present. `mavlink_velocity_adapter` maps bounded `/air/cmd_vel_safe` intent to the MAVROS velocity-setpoint topic at 20 Hz and sends zero on stale or unauthorized input. Neither node arms, changes flight modes or publishes raw motor commands; a dedicated flight-controller/RC kill path remains mandatory. During supervised bring-up, publish the operator-enable heartbeat from a dedicated control process rather than a one-shot shell command.
+`mavros_state_guard` is read-only: it authorizes velocity only when a fresh MAVROS state reports a connected, already-armed GUIDED/OFFBOARD vehicle, an optional `/hardware/estop` is not asserted and a fresh `/air/operator_enable` heartbeat is present. `mavlink_velocity_adapter` maps bounded `/air/cmd_vel_safe` intent to the MAVROS velocity-setpoint topic at 20 Hz. When authorization or command freshness is lost it publishes one immediate zero setpoint, then stops the stream so the flight controller's configured command-loss land/RTL action can engage. Guard state is published on `/air/flight_state`; adapter handoff state is separate on `/air/adapter_state`. Neither node arms, changes flight modes or publishes raw motor commands; a dedicated flight-controller/RC kill path remains mandatory. During supervised bring-up, publish the operator-enable heartbeat from a dedicated control process rather than a one-shot shell command.
 
 For a restrained bench/SITL test only, the heartbeat can be exercised explicitly:
 
@@ -48,4 +48,4 @@ ros2 topic pub -r 10 /air/cmd_vel_safe geometry_msgs/msg/Twist \
   "{linear: {x: 0.2, y: 0.0, z: 0.0}, angular: {z: 0.0}}"
 ```
 
-Stopping either publisher makes the adapter return to zero within 500 ms. Do not use shell publishers as an operational control station.
+Stopping either publisher produces one zero setpoint within 500 ms and then stops the setpoint stream, handing command-loss recovery to the configured autopilot action. Do not use shell publishers as an operational control station.

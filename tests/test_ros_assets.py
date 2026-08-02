@@ -96,13 +96,17 @@ class RosAssetsTest(unittest.TestCase):
             "/air/cmd_vel_safe",
             "/air/operator_enable",
             "/air/velocity_authorized",
+            "/air/flight_state",
+            "/air/adapter_state",
             "/mavros/setpoint_velocity/cmd_vel",
         ):
             self.assertIn(value, setup + adapter + guard + launch)
         for forbidden in ("/mavros/actuator_control", "CommandLong", "arming/cmd", "set_mode"):
             self.assertNotIn(forbidden, adapter + guard)
-        for value in ("command_stale_ms: 500", "operator_enable_timeout_ms: 500", "max_horizontal_mps: 1.5", "max_vertical_mps: 1.0"):
+        for value in ("command_stale_ms: 500", "operator_enable_timeout_ms: 500", "state_timeout_ms: 2000", "health_topic: /air/adapter_state", "max_horizontal_mps: 1.5", "max_vertical_mps: 1.0"):
             self.assertIn(value, config)
+        self.assertIn("autopilot_command_loss_authoritative", adapter)
+        self.assertIn("state_fresh", guard)
 
     def test_sentinel_mast_has_independent_limits_and_bridge(self):
         setup = (ROOT / "ros2/openpatrol_adapter/setup.py").read_text()

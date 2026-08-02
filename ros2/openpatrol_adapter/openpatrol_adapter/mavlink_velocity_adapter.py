@@ -15,12 +15,15 @@ from geometry_msgs.msg import Twist, TwistStamped
 from rclpy.node import Node
 from std_msgs.msg import Bool, String
 
+from .flight_contract import velocity_publish_decision
+
 
 class MavlinkVelocityAdapter(Node):
     def __init__(self) -> None:
         super().__init__("openpatrol_airscout_velocity_adapter")
         self.declare_parameter("input_topic", "/air/cmd_vel_safe")
         self.declare_parameter("mavros_topic", "/mavros/setpoint_velocity/cmd_vel")
+        self.declare_parameter("health_topic", "/air/adapter_state")
         self.declare_parameter("command_stale_ms", 500)
         self.declare_parameter("max_horizontal_mps", 1.5)
         self.declare_parameter("max_vertical_mps", 1.0)
@@ -40,7 +43,9 @@ class MavlinkVelocityAdapter(Node):
         self.output = self.create_publisher(
             TwistStamped, str(self.get_parameter("mavros_topic").value), 20
         )
-        self.health = self.create_publisher(String, "/air/flight_state", 10)
+        self.health = self.create_publisher(
+            String, str(self.get_parameter("health_topic").value), 10
+        )
         self.create_subscription(
             Twist, str(self.get_parameter("input_topic").value), self.on_command, 20
         )
@@ -48,6 +53,7 @@ class MavlinkVelocityAdapter(Node):
         self.latest = Twist()
         self.latest_at = 0.0
         self.authorized = False
+        self.was_streaming = False
         self.create_timer(1.0 / rate, self.step)
 
     def on_command(self, message: Twist) -> None:
@@ -67,33 +73,46 @@ class MavlinkVelocityAdapter(Node):
         self.authorized = bool(message.data)
 
     def step(self) -> None:
-        age = time.monotonic() - self.latest_at
-        enabled = self.authorized and age <= self.stale_s
-        x = self.latest.linear.x if enabled else 0.0
-        y = self.latest.linear.y if enabled else 0.0
-        horizontal = math.hypot(x, y)
-        if horizontal > self.max_horizontal:
-            scale = self.max_horizontal / horizontal
-            x *= scale
-            y *= scale
-        z = max(-self.max_vertical, min(self.max_vertical, self.latest.linear.z if enabled else 0.0))
-        yaw = max(-self.max_yaw, min(self.max_yaw, self.latest.angular.z if enabled else 0.0))
-
-        message = TwistStamped()
-        message.header.stamp = self.get_clock().now().to_msg()
-        message.header.frame_id = "map"
-        message.twist.linear.x = x
-        message.twist.linear.y = y
-        message.twist.linear.z = z
-        message.twist.angular.z = yaw
-        self.output.publish(message)
+        age = math.inf if not self.latest_at else time.monotonic() - self.latest_at
+        decision = velocity_publish_decision(
+            authorized=self.authorized,
+            command_age_s=age,
+            stale_s=self.stale_s,
+            was_streaming=self.was_streaming,
+        )
+        if decision.publish:
+            x = 0.0 if decision.zero else self.latest.linear.x
+            y = 0.0 if decision.zero else self.latest.linear.y
+            horizontal = math.hypot(x, y)
+            if horizontal > self.max_horizontal:
+                scale = self.max_horizontal / horizontal
+                x *= scale
+                y *= scale
+            z = 0.0 if decision.zero else max(
+                -self.max_vertical, min(self.max_vertical, self.latest.linear.z)
+            )
+            yaw = 0.0 if decision.zero else max(
+                -self.max_yaw, min(self.max_yaw, self.latest.angular.z)
+            )
+            message = TwistStamped()
+            message.header.stamp = self.get_clock().now().to_msg()
+            message.header.frame_id = "map"
+            message.twist.linear.x = x
+            message.twist.linear.y = y
+            message.twist.linear.z = z
+            message.twist.angular.z = yaw
+            self.output.publish(message)
+        self.was_streaming = decision.streaming
 
         state = String()
         state.data = json.dumps(
             {
-                "adapter": "ready" if enabled else "safe_zero",
-                "reason": "not_authorized" if not self.authorized else ("command_stale" if age > self.stale_s else "active"),
+                "adapter": "streaming" if decision.streaming else "failsafe_handoff",
+                "reason": decision.reason,
                 "command_age_ms": None if not self.latest_at else round(age * 1000),
+                "setpoint_published": decision.publish,
+                "zero_setpoint": decision.publish and decision.zero,
+                "autopilot_command_loss_authoritative": True,
                 "raw_motor_control": False,
                 "arming_or_mode_control": False,
             },

@@ -16,6 +16,7 @@ def generate_launch_description():
             parameters=[{
                 "allowed_modes": ["GUIDED", "OFFBOARD"],
                 "operator_enable_timeout_ms": 500,
+                "state_timeout_ms": 2000,
             }],
             output="screen",
         ),
