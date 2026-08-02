@@ -51,6 +51,14 @@ class MastStatus:
     def extended(self) -> bool:
         return bool(self.flags & 0x40)
 
+    @property
+    def position_sensor_fault(self) -> bool:
+        return bool(self.flags & 0x80)
+
+    @property
+    def extended_or_unknown(self) -> bool:
+        return self.extended or self.position_sensor_fault
+
 
 def parse_mast_status(line: bytes | str) -> MastStatus:
     fields = _payload(line).split(",")

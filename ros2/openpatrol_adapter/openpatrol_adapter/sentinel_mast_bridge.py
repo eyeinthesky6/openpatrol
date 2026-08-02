@@ -76,12 +76,14 @@ class SentinelMastBridge(Node):
                 handle.close()
             except Exception:
                 pass
+        self.publish_extended(True)
         self.publish_state("offline", reason)
 
     def step(self) -> None:
         self.connect()
         handle = self.serial_handle
         if handle is None:
+            self.publish_extended(True)
             return
         enabled = not self.estop and time.monotonic() - self.target_at <= self.stale_s
         try:
@@ -105,6 +107,7 @@ class SentinelMastBridge(Node):
             status = parse_mast_status(line)
         except ProtocolError as exc:
             self.rejected_frames += 1
+            self.publish_extended(True)
             self.publish_state("degraded", str(exc))
             return
         joint = JointState()
@@ -112,11 +115,24 @@ class SentinelMastBridge(Node):
         joint.name = ["sentinel_mast_joint"]
         joint.position = [(status.height_mm - self.min_height) / 1000]
         self.joint_pub.publish(joint)
-        extended = Bool()
-        extended.data = status.extended
-        self.extended_pub.publish(extended)
-        blocked = status.tilt_interlock or status.actuator_fault or status.drive_moving
-        self.publish_state("blocked" if blocked else "ready", "mast status received", status.height_mm, status.flags)
+        self.publish_extended(status.extended_or_unknown)
+        blocked = (
+            status.tilt_interlock
+            or status.actuator_fault
+            or status.drive_moving
+            or status.position_sensor_fault
+        )
+        self.publish_state(
+            "blocked" if blocked else "ready",
+            "mast status received",
+            status.height_mm,
+            status.flags,
+        )
+
+    def publish_extended(self, extended_or_unknown: bool) -> None:
+        message = Bool()
+        message.data = bool(extended_or_unknown)
+        self.extended_pub.publish(message)
 
     def publish_state(self, state: str, detail: str, height_mm: int | None = None, flags: int | None = None) -> None:
         message = String()
@@ -127,6 +143,8 @@ class SentinelMastBridge(Node):
                 "height_mm": height_mm,
                 "target_mm": self.target_mm,
                 "flags": flags,
+                "extended_or_unknown": True if flags is None else bool(flags & 0xC0),
+                "position_sensor_fault": False if flags is None else bool(flags & 0x80),
                 "port": self.port_name,
                 "rejected_frames": self.rejected_frames,
             },

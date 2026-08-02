@@ -32,8 +32,9 @@ All dimensions are millimetres unless noted. The mast is an elevated mass and mu
 ## Mast interfaces
 
 - Four M8 mast-base fasteners on the `mast_base` drawing; use locking nuts or qualified thread locker.
-- A separate linear position sensor must cover the full 980–1500 mm calibrated head-height range.
+- A separate linear position sensor must cover the full 980–1500 mm calibrated head-height range. Electrical values outside the calibrated range are a fault, not a height estimate.
 - The lower and upper limits are independent normally-closed inputs to the mast controller.
+- Add an independent normally-closed **retracted-confirm switch** at the bottom datum. It is series-wired with the mast controller's isolated `RETRACTED_OK` output to the drive controller.
 - The column must be self-locking or actively braked at rated head mass.
 - The flexible cable chain must retain at least 20% service slack at full extension and must not enter the lidar field of view.
 - The fixed lidar remains below the moving head so base navigation survives a mast controller fault.
@@ -42,7 +43,7 @@ All dimensions are millimetres unless noted. The mast is an elevated mass and mu
 
 Using the declared 430 mm maximum CG height and 200 mm half-width, the ideal static side-tip angle is about 25 degrees before tyre/body compliance. The hardware tilt interlock is therefore set no higher than 8 degrees pending measured tests. This is an engineering margin, not a certification claim.
 
-No autonomous docking or normal-speed travel is permitted with the mast above the retracted threshold. The drive controller independently applies the 0.18 m/s wheel cap when the mast controller asserts `EXTENDED`.
+No autonomous docking or normal-speed travel is permitted unless the mast is positively confirmed retracted. The drive controller independently applies the 0.18 m/s wheel cap when the confirmation loop is open. Open wire, controller power loss, invalid height sensor, or mast movement all fail to the capped state.
 
 ## Exterior and service
 

@@ -20,9 +20,9 @@ Status flags:
 - bit 2: command watchdog timed out
 - bit 3: motor-driver fault
 - bit 4: charger connected
-- bit 5: Sentinel mast above the extended-speed threshold
+- bit 5: Sentinel mast extended **or its retracted confirmation is unavailable/unknown**
 
-When bit 5 is active the reference controller caps each wheel to 180 mm/s, regardless of a higher command from Linux/ROS. Platforms without a mast leave the active-low mast input open/pulled high.
+When bit 5 is active the reference controller caps each wheel to 180 mm/s, regardless of a higher command from Linux/ROS. The electrical input is fail-safe: only a pulled-low `MAST_RETRACTED_OK` line permits normal speed. Sentinel obtains that low through an independent NC retracted switch in series with a healthy mast-controller output. Rover One and TriScout fit a labelled supervised ground jumper; an open or missing jumper deliberately applies the creep cap.
 
 Encoder counts are signed wrapping 32-bit cumulative counts, averaged per side on four-wheel platforms. `encoder_counts_per_rev` means counts per **wheel** revolution after gearbox and quadrature decoding; measure it on the assembled unit.
 

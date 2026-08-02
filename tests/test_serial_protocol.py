@@ -48,6 +48,15 @@ class SerialProtocolTest(unittest.TestCase):
         self.assertEqual((7, 1438, 34), (status.seq, status.height_mm, status.flags))
         self.assertTrue(status.upper_limit)
         self.assertTrue(status.drive_moving)
+        self.assertFalse(status.position_sensor_fault)
+
+    def test_mast_position_sensor_fault_is_extended_or_unknown(self):
+        payload = b"T,8,980,128"
+        crc = PROTOCOL.crc16_ccitt(payload)
+        status = MAST.parse_mast_status(b"$" + payload + f"*{crc:04X}\n".encode())
+        self.assertTrue(status.position_sensor_fault)
+        self.assertTrue(status.extended_or_unknown)
+        self.assertFalse(status.extended)
 
     def test_mast_protocol_rejects_out_of_range_target(self):
         with self.assertRaises(PROTOCOL.ProtocolError):

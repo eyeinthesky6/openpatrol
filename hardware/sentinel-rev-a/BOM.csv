@@ -16,7 +16,7 @@ SN-014,12.8 V 20 Ah LiFePO4 battery with BMS,1,7500,7500,Qualified pack with fus
 SN-015,5.1 V 6 A protected DC-DC converter,1,1000,1000,Pi and sensors
 SN-016,12.8-to-24 V isolated boost converter 10 A,1,1300,1300,Lift supply only
 SN-017,Drive relay fuses contactors wiring glands and harness,1,1800,1800,Normally-closed safety chain
-SN-018,NC bumper switches hard limits dual-axis tilt switch and linear mast position sensor,1,1100,1100,Independent safety inputs
+SN-018,NC bumper switches upper/lower limits retracted-confirm switch dual-axis tilt switch and linear mast position sensor,1,1100,1100,Independent fail-safe safety inputs
 SN-019,Blue white and amber LED modules plus buzzer,1,500,500,Shared family light language
 SN-020,Fasteners inserts vibration mounts and service connectors,1,1000,1000,Use captive fasteners on service panels
 SN-021,Exterior finish edge seals and protective film,1,2800,2800,Prototype-quality finish allowance

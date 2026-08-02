@@ -17,8 +17,9 @@ Rear guarded service stop, front/rear bumper switches, charger interlock and dri
 
 - Drive controller: USB serial, `$C`/`$S` frames from the common OpenPatrol protocol.
 - Mast controller: separate USB serial, `$M`/`$T` frames from `mast-protocol.md`.
-- Mast `EXTENDED` output is wired into the Sentinel drive controller's speed-cap input.
-- Drive `MOVING` output is wired into the mast controller; extension is inhibited above creep speed.
+- Drive `MOVING` output is wired into the mast controller; mast motion is inhibited whenever the drive is above creep threshold.
+- The drive controller's `MAST_RETRACTED_OK` input is pulled high locally. It reaches ground only through **both** an independent normally-closed retracted-confirm switch and an isolated open-collector output from the healthy mast controller. Any open wire, controller power loss, invalid position sensor, raised mast, or failed switch therefore reads extended/unknown and applies the 180 mm/s wheel cap.
+- Rover One and TriScout, which have no mast, use a labelled supervised ground jumper at `MAST_RETRACTED_OK`; leaving that jumper open deliberately applies the conservative creep cap.
 
 ## Head harness
 

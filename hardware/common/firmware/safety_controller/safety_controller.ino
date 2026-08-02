@@ -7,7 +7,7 @@ static const uint8_t LF_A=2, LF_B=3, LR_A=4, LR_B=5;
 static const uint8_t RF_A=6, RF_B=7, RR_A=8, RR_B=9;
 static const uint8_t LEFT_PWM=10, RIGHT_PWM=11, LEFT_DIR=12, RIGHT_DIR=13;
 static const uint8_t DRIVER_ENABLE=14, SAFETY_LOOP_OK=15, ESTOP_OK=16;
-static const uint8_t DRIVER_FAULT=17, CHARGER_PRESENT=18, MAST_EXTENDED=19;
+static const uint8_t DRIVER_FAULT=17, CHARGER_PRESENT=18, MAST_RETRACTED_OK=19;
 static const uint8_t DRIVE_MOVING_OUTPUT=20, BATTERY_ADC=A0;
 
 static const uint32_t BAUD=115200;
@@ -47,7 +47,10 @@ bool safetyLoopOk(){ return digitalRead(SAFETY_LOOP_OK)==LOW; } // isolated NC-l
 bool estopOk(){ return digitalRead(ESTOP_OK)==LOW; }
 bool driverFaulted(){ return digitalRead(DRIVER_FAULT)==LOW; }
 bool chargerConnected(){ return digitalRead(CHARGER_PRESENT)==LOW; }
-bool mastExtended(){ return digitalRead(MAST_EXTENDED)==LOW; } // leave open/pulled high on platforms without a mast
+// Protocol bit 5 remains named MAST_EXTENDED for compatibility. The electrical
+// boundary is fail-safe: LOW means confirmed retracted; HIGH/open means extended
+// or unknown. Non-mast platforms must fit the documented supervised ground jumper.
+bool mastExtended(){ return digitalRead(MAST_RETRACTED_OK)==HIGH; }
 float activeWheelLimit(){ return mastExtended()?MAX_WHEEL_MM_S_MAST_EXTENDED:MAX_WHEEL_MM_S; }
 
 void stopDrive(){
@@ -116,7 +119,7 @@ void setup(){
   Serial.begin(BAUD);
   pinMode(LF_A,INPUT_PULLUP); pinMode(LF_B,INPUT_PULLUP); pinMode(LR_A,INPUT_PULLUP); pinMode(LR_B,INPUT_PULLUP); pinMode(RF_A,INPUT_PULLUP); pinMode(RF_B,INPUT_PULLUP); pinMode(RR_A,INPUT_PULLUP); pinMode(RR_B,INPUT_PULLUP);
   pinMode(LEFT_PWM,OUTPUT); pinMode(RIGHT_PWM,OUTPUT); pinMode(LEFT_DIR,OUTPUT); pinMode(RIGHT_DIR,OUTPUT); pinMode(DRIVER_ENABLE,OUTPUT); pinMode(DRIVE_MOVING_OUTPUT,OUTPUT);
-  pinMode(SAFETY_LOOP_OK,INPUT_PULLUP); pinMode(ESTOP_OK,INPUT_PULLUP); pinMode(DRIVER_FAULT,INPUT_PULLUP); pinMode(CHARGER_PRESENT,INPUT_PULLUP); pinMode(MAST_EXTENDED,INPUT_PULLUP);
+  pinMode(SAFETY_LOOP_OK,INPUT_PULLUP); pinMode(ESTOP_OK,INPUT_PULLUP); pinMode(DRIVER_FAULT,INPUT_PULLUP); pinMode(CHARGER_PRESENT,INPUT_PULLUP); pinMode(MAST_RETRACTED_OK,INPUT_PULLUP);
   attachInterrupt(digitalPinToInterrupt(LF_A),lfISR,CHANGE); attachInterrupt(digitalPinToInterrupt(LR_A),lrISR,CHANGE); attachInterrupt(digitalPinToInterrupt(RF_A),rfISR,CHANGE); attachInterrupt(digitalPinToInterrupt(RR_A),rrISR,CHANGE);
   stopDrive(); lastCommandMs=millis();
 }

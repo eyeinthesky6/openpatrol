@@ -5,7 +5,7 @@
 // Verify pins and active levels against the selected RP2040 board and isolator board.
 static const uint8_t ACTUATOR_PWM=2, ACTUATOR_DIR=3, ACTUATOR_ENABLE=4;
 static const uint8_t LOWER_LIMIT_OK=5, UPPER_LIMIT_OK=6, TILT_OK=7;
-static const uint8_t DRIVE_MOVING=8, ACTUATOR_FAULT=9, EXTENDED_OUTPUT=10;
+static const uint8_t DRIVE_MOVING=8, ACTUATOR_FAULT=9, RETRACTED_OK_OUTPUT=10;
 static const uint8_t HEIGHT_ADC=A0;
 static const uint32_t BAUD=115200;
 static const uint32_t COMMAND_TIMEOUT_MS=500;
@@ -13,6 +13,7 @@ static const uint32_t CONTROL_PERIOD_MS=20;
 static const uint32_t STATUS_PERIOD_MS=50;
 static const int MIN_HEIGHT_MM=980, MAX_HEIGHT_MM=1500, EXTENDED_THRESHOLD_MM=1120;
 static const int HEIGHT_ADC_AT_MIN=140, HEIGHT_ADC_AT_MAX=890; // MEASURE on the assembled mast.
+static const int HEIGHT_ADC_MARGIN=60;
 static const int POSITION_DEADBAND_MM=6;
 static const int ACTUATOR_PWM_VALUE=180;
 
@@ -34,10 +35,18 @@ bool upperLimitOk(){return digitalRead(UPPER_LIMIT_OK)==LOW;}
 bool tiltOk(){return digitalRead(TILT_OK)==LOW;}
 bool driveMoving(){return digitalRead(DRIVE_MOVING)==LOW;}
 bool actuatorFaulted(){return digitalRead(ACTUATOR_FAULT)==LOW;}
-int heightMm(){
-  int raw=analogRead(HEIGHT_ADC);
+int heightRaw(){return analogRead(HEIGHT_ADC);}
+bool heightSensorValid(int raw){
+  return raw>=HEIGHT_ADC_AT_MIN-HEIGHT_ADC_MARGIN && raw<=HEIGHT_ADC_AT_MAX+HEIGHT_ADC_MARGIN;
+}
+int heightMmFromRaw(int raw){
   long value=map(raw,HEIGHT_ADC_AT_MIN,HEIGHT_ADC_AT_MAX,MIN_HEIGHT_MM,MAX_HEIGHT_MM);
   return constrain((int)value,MIN_HEIGHT_MM,MAX_HEIGHT_MM);
+}
+void publishRetractedOk(int current,bool sensorValid){
+  // Active-low fail-safe confirmation. High/open means extended OR unknown.
+  bool confirmedRetracted=sensorValid && current<EXTENDED_THRESHOLD_MM;
+  digitalWrite(RETRACTED_OK_OUTPUT,confirmedRetracted?LOW:HIGH);
 }
 void stopMast(){analogWrite(ACTUATOR_PWM,0);digitalWrite(ACTUATOR_ENABLE,LOW);}
 void driveMast(bool up){
@@ -64,21 +73,24 @@ void readSerial(){
 }
 void controlStep(){
   uint32_t now=millis(); if(now-lastControlMs<CONTROL_PERIOD_MS) return; lastControlMs=now;
-  int current=heightMm(); bool timedOut=now-lastCommandMs>COMMAND_TIMEOUT_MS;
-  bool safe=commandEnabled && !timedOut && tiltOk() && !driveMoving() && !actuatorFaulted();
-  if(!safe){stopMast();digitalWrite(EXTENDED_OUTPUT,current>=EXTENDED_THRESHOLD_MM?LOW:HIGH);return;}
+  int raw=heightRaw(); bool sensorValid=heightSensorValid(raw); int current=heightMmFromRaw(raw);
+  bool timedOut=now-lastCommandMs>COMMAND_TIMEOUT_MS;
+  bool safe=commandEnabled && !timedOut && tiltOk() && !driveMoving() && !actuatorFaulted() && sensorValid;
+  if(!safe){stopMast();publishRetractedOk(current,sensorValid);return;}
   int error=targetHeightMm-current;
   if(abs(error)<=POSITION_DEADBAND_MM){stopMast();}
   else if(error>0){if(upperLimitOk()) driveMast(true); else stopMast();}
   else {if(lowerLimitOk()) driveMast(false); else stopMast();}
-  digitalWrite(EXTENDED_OUTPUT,current>=EXTENDED_THRESHOLD_MM?LOW:HIGH);
+  publishRetractedOk(current,sensorValid);
 }
 void sendStatus(){
   uint32_t now=millis(); if(now-lastStatusMs<STATUS_PERIOD_MS) return; lastStatusMs=now;
-  int current=heightMm(); uint16_t flags=0;
+  int raw=heightRaw(); bool sensorValid=heightSensorValid(raw); int current=heightMmFromRaw(raw);
+  uint16_t flags=0;
   if(!lowerLimitOk()) flags|=1; if(!upperLimitOk()) flags|=2;
   if(now-lastCommandMs>COMMAND_TIMEOUT_MS) flags|=4; if(!tiltOk()) flags|=8;
   if(actuatorFaulted()) flags|=16; if(driveMoving()) flags|=32; if(current>=EXTENDED_THRESHOLD_MM) flags|=64;
+  if(!sensorValid) flags|=128;
   char payload[80]; snprintf(payload,sizeof(payload),"T,%lu,%d,%u",(unsigned long)lastSequence,current,(unsigned)flags);
   Serial.print('$');Serial.print(payload);Serial.print('*');char crcText[5];snprintf(crcText,sizeof(crcText),"%04X",crc16((const uint8_t*)payload,strlen(payload)));Serial.println(crcText);
 }
@@ -86,7 +98,7 @@ void setup(){
   Serial.begin(BAUD);
   pinMode(ACTUATOR_PWM,OUTPUT);pinMode(ACTUATOR_DIR,OUTPUT);pinMode(ACTUATOR_ENABLE,OUTPUT);
   pinMode(LOWER_LIMIT_OK,INPUT_PULLUP);pinMode(UPPER_LIMIT_OK,INPUT_PULLUP);pinMode(TILT_OK,INPUT_PULLUP);
-  pinMode(DRIVE_MOVING,INPUT_PULLUP);pinMode(ACTUATOR_FAULT,INPUT_PULLUP);pinMode(EXTENDED_OUTPUT,OUTPUT);
-  stopMast();digitalWrite(EXTENDED_OUTPUT,HIGH);lastCommandMs=millis();
+  pinMode(DRIVE_MOVING,INPUT_PULLUP);pinMode(ACTUATOR_FAULT,INPUT_PULLUP);pinMode(RETRACTED_OK_OUTPUT,OUTPUT);
+  stopMast();digitalWrite(RETRACTED_OK_OUTPUT,HIGH);lastCommandMs=millis();
 }
 void loop(){readSerial();controlStep();sendStatus();}
