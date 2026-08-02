@@ -1,54 +1,75 @@
 # OpenPatrol
 
-OpenPatrol is a mobility-agnostic, local-first patrol and evidence reference system. It ships a working simulation—not a mock screen—that closes the product loop: route execution, detection, tamper-evident evidence, human review, audit history, safety-state controls and observability.
+OpenPatrol is a mobility-agnostic, local-first patrol and evidence reference system. It ships a working software simulation—not a mock screen—that closes the loop from route execution and detection through tamper-evident evidence, human review, audit history, safety-state controls and observability.
 
 ![AI-generated concept render of proposed OpenPatrol hardware family](docs/assets/openpatrol-hardware-family-concept.png)
 
-> **Concept render, not built hardware.** The recommended product is the stable four-wheel **OpenPatrol Rover One**. TriScout, AirScout and the wheeled Sentinel are proposals at earlier maturity levels. See the [hardware platform matrix](docs/hardware-platforms.md).
+> **Concept render, not built hardware.** Rover One and TriScout now have complete Rev-A engineering packs, but remain physically unvalidated until fabricated units pass the published safety protocol. AirScout and Sentinel remain proposals.
 
-## Quick start
+## Install the lightweight core
 
-Requires Python 3.11+ and no third-party runtime packages.
+The core uses Python 3.11+ and no third-party runtime packages. The simplest isolated install is:
+
+```bash
+pipx install git+https://github.com/eyeinthesky6/openpatrol.git
+openpatrol
+```
+
+Open `http://127.0.0.1:8765`. The wheel includes the dashboard and default warehouse scenario. Run `openpatrol doctor` to inspect optional capabilities and `openpatrol setup` for an interactive explanation before installing heavy components.
+
+From a repository checkout, Docker users can run:
 
 ```bash
 ./scripts/openpatrol up
 ```
 
-This creates local secrets, builds the container, starts the core simulation and prints the dashboard URL. Open <http://127.0.0.1:8765>. It requires Docker Compose v2. Python 3.11+ remains a dependency-free developer alternative: `python3 -m openpatrol.server`.
+The script creates local secrets, builds the non-root image, waits for the health endpoint and only then prints the dashboard URL.
 
-Or run the non-root container:
+## Optional components
 
-```bash
-docker compose up --build
-```
+OpenPatrol does **not** silently install multi-gigabyte robotics packages.
+
+- `openpatrol setup --with vision` explains the Docker/Frigate camera path.
+- `openpatrol setup --with ros-gazebo` checks for ROS 2 Jazzy and Gazebo Harmonic.
+- `openpatrol setup --with openscad` checks hardware-export capability.
+- From a checkout, set `CAMERA_RTSP_URL` in `.env` and run `./scripts/openpatrol vision`.
+
+The Docker image installs the MQTT bridge correctly, and CI boots the exact advertised Compose command plus a clean installed wheel.
 
 ## What works
 
 - configurable waypoint patrol with pause, resume, return-to-dock and E-stop simulation states
-- synthetic scenario detections and authenticated external detection ingestion
-- atomic evidence receipts whose immutable capture and append-only review chain can be independently verified
+- synthetic detections and authenticated external detection ingestion
+- atomic evidence receipts with immutable capture and append-only review history
 - responsive local operator UI, incident filters and review dispositions
 - versioned JSON API, health endpoint, Prometheus-compatible metrics and security headers
-- ROS 2 mobility contract and Frigate integration recipe at documented adapter boundaries
-- installable ROS 2 Jazzy safety-adapter package and optional Frigate MQTT bridge
-- provider-neutral vision adapter, audited operator subject labels, SLAM Toolbox/Nav2 configuration and a docking plug-in boundary
-- parametric reference-base/payload CAD, India-oriented BOM, stop-chain wiring and physical validation protocol
-- unit, state-machine, evidence-tamper and live HTTP integration tests
-- deterministic virtual hardware, ROS 2 mock controllers and a Gazebo Harmonic warehouse digital twin
+- provider-neutral vision adapter and pinned optional Frigate/Mosquitto profile
+- ROS 2 Jazzy safety adapter, SLAM Toolbox/Nav2 configuration and Gazebo Harmonic warehouse twin
+- deterministic virtual hardware, watchdog, odometry, LiDAR and navigation smoke tests
+- production-like accelerated eight-hour software exercise
+- two cost-controlled hardware engineering packs with CAD, BOM, wiring and compatibility profiles
 
-Run all verification with `./scripts/check.sh` or `python3 -m unittest discover -s tests -v`.
+Run verification with:
 
-Create a reproducible source archive with `./scripts/release.sh`.
+```bash
+./scripts/check.sh
+openpatrol hardware check all
+```
 
-Run a production-like accelerated eight-hour shift with `python3 -m openpatrol.exercise`. It injects detector events, E-stops, localization faults, charge cycles and a restart, then writes a machine-readable acceptance report. See [`docs/simulation-exercise.md`](docs/simulation-exercise.md).
+Create a reproducible source archive with `./scripts/release.sh`. Build wheels and source distributions with `python -m build`; the `package` GitHub Action also preserves them as artifacts.
 
-Run the dependency-free hardware acceptance suite with `python3 -m openpatrol.hardware_harness`. For ROS 2 mock hardware and Gazebo instructions, see [`docs/virtual-hardware.md`](docs/virtual-hardware.md).
+## Hardware reference builds
 
-GitHub Actions also builds ROS 2 Jazzy and runs the Gazebo warehouse headlessly. It proves LiDAR delivery, odometry motion through the safety adapter and watchdog stopping, then preserves the simulator logs as an artifact.
+| Platform | Architecture | Target payload | Engineering BOM |
+|---|---|---:|---:|
+| Rover One Rev A | four-wheel skid steer | 5 kg | about ₹36,900 |
+| TriScout Rev A | two-wheel differential + caster | 3 kg | about ₹32,500 |
+
+Both use 12.8 V LiFePO4, common 100 RPM encoder gearmotors, 100 mm rubber wheels, a shared Pi/lidar payload and a normally-closed hardwired drive cut. Export fabrication files with `./scripts/openpatrol export-hardware all`. See `docs/hardware-build-guide.md` and `hardware/`.
 
 ![AI-generated concept of Rover One and AirScout inspecting a warehouse](docs/assets/openpatrol-warehouse-concept.png)
 
-The image above is an AI-generated operating concept, not a field-test photograph. The checked-in Gazebo test currently validates the ground rover; a PX4/ArduPilot drone adapter is proposed but not yet implemented.
+The image is an AI-generated operating concept, not a field-test photograph. The checked-in Gazebo model validates the ground-rover software path. A PX4/ArduPilot drone adapter is not implemented.
 
 ## Configuration
 
@@ -57,28 +78,18 @@ The image above is an AI-generated operating concept, not a field-test photograp
 | `OPENPATROL_HOST` | `127.0.0.1` | Bind address; container sets `0.0.0.0` |
 | `OPENPATROL_PORT` | `8765` | HTTP port |
 | `OPENPATROL_DATA` | `./runtime` | Persistent local evidence directory |
-| `OPENPATROL_SCENARIO` | `./scenarios/warehouse.json` | Simulation scenario |
+| `OPENPATROL_SCENARIO` | bundled warehouse | Simulation scenario |
 | `OPENPATROL_TICK_SECONDS` | `0.4` | Simulation tick interval |
-| `OPENPATROL_INGEST_TOKEN` | unset | Bearer token enabling `/api/v1/detections` |
-| `OPENPATROL_OPERATOR_TOKEN` | unset | Bearer token protecting commands and incident review |
-| `OPENPATROL_SIGNING_KEY` | unset | Secret used to authenticate receipt origin with HMAC-SHA256 |
-| `OPENPATROL_RETENTION_DAYS` | `30` | Maximum local evidence age |
-| `OPENPATROL_MAX_RECORDS` | `5000` | Hard cap on local evidence receipts |
+| `OPENPATROL_INGEST_TOKEN` | unset | Bearer token enabling detection ingestion |
+| `OPENPATROL_OPERATOR_TOKEN` | unset | Bearer token protecting commands and review |
+| `OPENPATROL_SIGNING_KEY` | unset | HMAC-SHA256 receipt-origin key |
+| `OPENPATROL_RETENTION_DAYS` | `30` | Maximum evidence age |
+| `OPENPATROL_MAX_RECORDS` | `5000` | Hard receipt cap |
 
-The external ingestion body requires `id`, `event_type`, `title`, `severity` and `confidence`. See [`docs/integrations.md`](docs/integrations.md) and [`docs/api.md`](docs/api.md).
+For LAN use, set both tokens and put HTTP behind an authenticated TLS gateway or VPN. Do not expose OpenPatrol, ROS 2, MQTT, Frigate or go2rtc directly to the internet.
 
-For LAN deployment, set both tokens and place the service behind an authenticated TLS gateway or VPN. The bundled browser UI is intended for loopback/local use; a production gateway should inject or broker operator authorization rather than embedding secrets in frontend code.
+## Safety and project boundaries
 
-Repository map: `hardware/` contains editable mechanical source and BOM; `ros2/` contains the ROS 2 Jazzy adapter and simulation package; `deploy/frigate/` contains an integration profile; `schemas/` contains portable JSON contracts; `docs/product-requirements.md` tracks every product-note claim.
+The UI E-stop is a product-state demonstration. A physical robot requires a hardwired power interruption, controller-level watchdog, charging interlock and measured stopping envelope independent of Linux, Wi-Fi and the browser. OpenPatrol excludes weapons, pursuit, deliberate contact, face recognition and covert monitoring.
 
-For day-to-day use see [`docs/operator-guide.md`](docs/operator-guide.md). Physical builders must execute [`docs/safety-validation.md`](docs/safety-validation.md) and publish measured results; an unchecked box is not a passed safety test.
-
-New users should start with [`docs/setup-guide.md`](docs/setup-guide.md). The dashboard and operational safeguards are informed by recurring real-world failures documented in [`docs/competitive-lessons.md`](docs/competitive-lessons.md).
-
-To connect a camera, put its RTSP URL in the generated `.env` and run `./scripts/openpatrol vision`. This enables pinned Frigate, Mosquitto and the OpenPatrol bridge. Any other vision model can pipe normalized NDJSON into `openpatrol-vision-adapter`; OpenPatrol does not force a particular model.
-
-## Project boundaries
-
-The included E-stop is a product-state demonstration. A physical robot requires a hardwired power interruption and motor-controller watchdog independent of Linux, Wi-Fi and this UI. OpenPatrol excludes weapons, pursuit, deliberate contact, face recognition and covert monitoring; deploy only with authorization, notices, retention rules and applicable privacy law.
-
-Software is Apache-2.0. Original hardware designs, when added, should use CERN-OHL-P-2.0; documentation may use CC BY 4.0.
+Software is Apache-2.0. Original hardware source is intended for CERN-OHL-P-2.0 distribution. Documentation and concept media must retain their stated licences and provenance.
