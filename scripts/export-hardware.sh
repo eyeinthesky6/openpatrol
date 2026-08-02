@@ -20,10 +20,34 @@ export_part() {
   fi
 }
 
+export_assembly() {
+  local id="$1" preview="$2" out="$3"
+  local defines=(-D 'part="assembly"')
+  [[ "$id" == "sentinel-rev-a" ]] && defines+=(-D 'mast_extension=1')
+
+  # CSG proves the complete assembly source parses and is inspectable without
+  # depending on an OpenGL framebuffer. Fabrication CI treats this as mandatory.
+  openscad -o "$out/assembly.csg" "${defines[@]}" "$preview"
+
+  # Product screenshots are useful locally but are not an engineering gate.
+  # OpenSCAD 2021.01 can return non-zero for headless PNG export even after a
+  # valid model compiles, so previews are explicitly opt-in and best-effort.
+  if [[ "${OPENPATROL_RENDER_PREVIEWS:-0}" == "1" ]]; then
+    if openscad -o "$out/assembly.png" --imgsize=1600,1000 --viewall \
+      --preview=throwntogether "${defines[@]}" "$preview"; then
+      echo "Rendered $out/assembly.png"
+    else
+      rm -f "$out/assembly.png"
+      echo "Warning: PNG preview unavailable; assembly.csg and fabrication files are valid." >&2
+    fi
+  fi
+}
+
 export_one() {
   local id="$1" file="$2" preview="$3"
   shift 3
   local out="$root/dist/hardware/$id"
+  rm -rf "$out"
   mkdir -p "$out"
   local mode="sheet"
   local part
@@ -35,13 +59,7 @@ export_one() {
       export_part "$file" "$out" "$part" stl
     fi
   done
-  if [[ "$id" == "sentinel-rev-a" ]]; then
-    openscad -o "$out/assembly.png" --imgsize=1600,1000 --viewall \
-      -D 'part="assembly"' -D 'mast_extension=1' "$preview"
-  else
-    openscad -o "$out/assembly.png" --imgsize=1600,1000 --viewall \
-      -D 'part="assembly"' "$preview"
-  fi
+  export_assembly "$id" "$preview" "$out"
   copy_pack_docs "$id" "$out"
   echo "Exported $id to $out"
 }

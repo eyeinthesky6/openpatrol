@@ -8,39 +8,69 @@ on:
 permissions:
   contents: read
 
+# Previous serial invocation retained as documentation only:
+# xvfb-run -a ./scripts/export-hardware.sh all
+# The matrix below validates the same four packs independently and avoids making
+# fabrication acceptance depend on headless OpenGL screenshot behavior.
+
 jobs:
-  export-all-platforms:
+  export-platform:
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        platform:
+          - rover-one-rev-a
+          - triscout-rev-a
+          - airscout-rev-a
+          - sentinel-rev-a
     steps:
       - uses: actions/checkout@v4
       - name: Install OpenSCAD
         run: |
           sudo apt-get update
-          sudo apt-get install -y openscad xvfb
-      - name: Export every fabrication pack
-        run: xvfb-run -a ./scripts/export-hardware.sh all
+          sudo apt-get install -y openscad
+      - name: Export fabrication pack
+        run: ./scripts/export-hardware.sh "${{ matrix.platform }}"
       - name: Verify expected artifacts
+        env:
+          PLATFORM: ${{ matrix.platform }}
         run: |
           python - <<'PY'
+          import os
           from pathlib import Path
-          root=Path('dist/hardware')
-          expected={
-            'rover-one-rev-a': ['lower_deck.dxf','upper_deck.dxf','motor_saddle.stl','assembly.png'],
-            'triscout-rev-a': ['lower_deck.dxf','upper_deck.dxf','motor_saddle.stl','assembly.png'],
-            'airscout-rev-a': ['lower_plate.dxf','upper_plate.dxf','motor_mount.stl','shell_top.stl','assembly.png'],
-            'sentinel-rev-a': ['lower_deck.dxf','mast_base.dxf','mast_bushing.stl','mask_frame.stl','assembly.png'],
-          }
-          missing=[]
-          for platform, files in expected.items():
-            for name in files:
-              path=root/platform/name
+
+          platform = os.environ["PLATFORM"]
+          root = Path("dist/hardware") / platform
+          expected = {
+              "rover-one-rev-a": [
+                  "lower_deck.dxf", "upper_deck.dxf", "motor_saddle.stl",
+                  "camera_bracket.stl", "assembly.csg", "BOM.csv",
+              ],
+              "triscout-rev-a": [
+                  "lower_deck.dxf", "upper_deck.dxf", "motor_saddle.stl",
+                  "camera_bracket.stl", "assembly.csg", "BOM.csv",
+              ],
+              "airscout-rev-a": [
+                  "lower_plate.dxf", "upper_plate.dxf", "motor_mount.stl",
+                  "prop_guard_segment.stl", "shell_top.stl", "assembly.csg", "BOM.csv",
+              ],
+              "sentinel-rev-a": [
+                  "lower_deck.dxf", "mast_base.dxf", "mast_bushing.stl",
+                  "mask_frame.stl", "head_shell.stl", "assembly.csg", "BOM.csv",
+              ],
+          }[platform]
+          missing = []
+          for name in expected:
+              path = root / name
               if not path.is_file() or path.stat().st_size == 0:
-                missing.append(str(path))
+                  missing.append(str(path))
           if missing:
-            raise SystemExit('Missing/empty CAD artifacts:\n'+'\n'.join(missing))
+              raise SystemExit("Missing/empty CAD artifacts:\n" + "\n".join(missing))
+          print(f"Verified {platform}: {len(expected)} required artifacts")
           PY
       - uses: actions/upload-artifact@v4
         with:
-          name: openpatrol-hardware-rev-a
-          path: dist/hardware
+          name: openpatrol-hardware-${{ matrix.platform }}
+          path: dist/hardware/${{ matrix.platform }}
