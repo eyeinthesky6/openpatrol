@@ -1,37 +1,18 @@
 # Hardware platform matrix
 
-OpenPatrol is software-first and mobility-agnostic. All four named platforms now have inspectable Rev-A engineering packs aligned to one industrial-design language. None has completed physical validation.
-
 | Name | Form | Engineering status | Intended role |
 |---|---|---|---|
-| **OpenPatrol Rover One** | Four-wheel skid-steer rover | Ready-to-test Rev-A source; physical validation pending | Primary robust indoor patrol reference |
-| **OpenPatrol TriScout** | Two drive wheels plus caster | Ready-to-test Rev-A source; physical validation pending | Lowest-cost smooth-floor reference |
-| **OpenPatrol AirScout** | Guard-ready X quadcopter | Ready-to-test Rev-A airframe, power and MAVLink boundary; flight validation pending | Short supervised aerial inspection |
-| **OpenPatrol Sentinel** | Four-wheel sentry with telescoping masked head | Ready-to-test Rev-A chassis, mast and controller source; physical validation pending | Higher viewpoint, telepresence and inspection |
-| **OpenPatrol Humanoid Lab** | Walking humanoid | Upstream research track only | Not a patrol product |
+| Rover One | Four-wheel skid-steer rover | Ready-to-test Rev A; physical validation pending | Robust primary indoor patrol |
+| TriScout | Two drive wheels plus caster | Ready-to-test Rev A; physical validation pending | Lowest-cost smooth-floor patrol |
+| AirScout | Guard-ready X quadcopter | Ready-to-test airframe/MAVLink source; flight validation pending | Short supervised aerial inspection |
+| Sentinel | Four-wheel sentry, telescoping masked head | Ready-to-test chassis/mast/controller; physical validation pending | Elevated viewpoint and telepresence |
+| Security Sensor Hub | Fixed 8-zone sensor/audio endpoint | Ready-to-test enclosure/electronics/firmware; validation pending | Integrate existing wired systems and local alerts |
 
-## Shared design contract
+The four mobile platforms use `visual.family: openpatrol-plain-future-v1`: warm off-white shells, charcoal structures, soft radii, dark sensor windows and restrained status lighting.
 
-Every platform declares `visual.family: openpatrol-plain-future-v1`. The appearance uses warm off-white non-structural shells, matte-charcoal lower structures, restrained blue/white/amber lighting and recessed black sensor windows. See `docs/family-design-language.md` and `hardware/common/cad/family_style.scad`.
+Ground platforms share bounded `/cmd_vel_safe`, odometry, watchdog and independent hardwired drive cut. Sentinel adds a separately controlled mast and a reduced speed envelope when raised. AirScout keeps stabilization, arming, geofence and failsafes inside ArduPilot/PX4.
 
-The three wheeled platforms share the OpenPatrol drive safety boundary: bounded `/cmd_vel_safe`, encoder odometry, a controller watchdog, charging interlock and a normally-closed hardwired drive cut. Sentinel adds a separately controlled self-locking mast and automatically reduces the speed envelope when extended.
-
-AirScout deliberately does **not** reuse the ground motor controller. ArduPilot or PX4 owns attitude control, motor mixing, arming, geofence and battery/command-loss failsafes. OpenPatrol sends only bounded velocity intent over the MAVROS/MAVLink boundary.
-
-## Cost targets
-
-| Platform | Engineering BOM | Target envelope |
-|---|---:|---:|
-| Rover One | ₹36,891 | ₹40,000 |
-| TriScout | ₹32,499 | ₹35,000 |
-| AirScout | ₹44,980 | ₹50,000 |
-| Sentinel | ₹66,890 | ₹75,000 |
-
-The figures are prototype sourcing estimates, not retail prices. Exclusions are listed inside each machine-readable profile.
-
-## Design truth
-
-“Ready-to-test prototype source” means a competent builder can quote, fabricate, assemble, wire and bring up Rev A without inventing the architecture. It does not mean that an unbuilt design has proven braking, thrust, thermal safety, runtime, RF reliability, sensor coverage, mast stability, docking or regulatory compliance. Those claims require fabricated units and committed acceptance data.
+The fixed hub is not a mobility profile. It consumes isolated relay/dry-contact signals and exposes only allow-listed speaker/strobe/siren commands. Certified systems remain independently functional.
 
 Run:
 

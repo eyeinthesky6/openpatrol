@@ -1,0 +1,17 @@
+item,description,qty,unit_estimate_inr,extended_inr,notes
+controller,RP2040 development board,1,650,650,Arduino Nano RP2040 Connect or Pico-class board
+adc,MCP3008 8-channel 10-bit ADC module,1,350,350,SPI supervised-loop measurement
+gateway,Raspberry Pi Zero 2 W or equivalent Linux SBC,1,1800,1800,May be omitted when connected to an existing robot computer
+ethernet,USB Ethernet adapter optional,1,550,550,Preferred for fixed installations
+power,12V to 5V 3A buck converter,1,350,350,Fused input branch
+input_protection,Resistor TVS terminal block components per 8 zones,1,700,700,1k series 10k pull-up 4.7k EOL baseline
+relay_board,2-channel opto-isolated relay or MOSFET board,1,350,350,Strobe and siren outputs
+amplifier,12V 15W class-D amplifier,1,450,450,Local speaker
+speaker,8-ohm weather-resistant horn/box speaker,1,850,850,Select for site acoustics
+strobe,12V amber/blue strobe,1,650,650,Local warning only
+siren,12V piezo siren,1,300,300,Policy-controlled and locally isolatable
+terminal_blocks,Pluggable terminals fuse holders and service disconnect,1,900,900,Label every circuit
+enclosure,Printed ASA/PETG enclosure plus DIN plate,1,1000,1000,Use metal/IP enclosure outdoors
+wiring,Ferrules cable glands wire labels and hardware,1,650,650,
+tamper,Normally-closed enclosure switch and service key input,1,200,200,
+TOTAL,Engineering BOM estimate,,,8700,Excludes connected third-party sensors installation labour and tax

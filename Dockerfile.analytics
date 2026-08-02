@@ -1,0 +1,8 @@
+FROM python:3.12-slim
+ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1
+WORKDIR /app
+COPY . /app
+RUN python -m pip install --no-cache-dir '.[analytics]' \
+    && useradd --system --uid 10002 --create-home analytics
+USER 10002
+ENTRYPOINT ["openpatrol-video-analytics"]

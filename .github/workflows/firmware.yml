@@ -1,32 +1,18 @@
 name: firmware
-
-on:
-  push:
-  pull_request:
-  workflow_dispatch:
-
-permissions:
-  contents: read
-
+on: [push, pull_request, workflow_dispatch]
+permissions: {contents: read}
 jobs:
   compile-reference-controllers:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
-      - name: Install Arduino CLI
-        uses: arduino/setup-arduino-cli@v2
-        with:
-          version: "1.5.0"
-      - name: Install official RP2040 core
-        run: |
-          arduino-cli core update-index
-          arduino-cli core install arduino:mbed_rp2040
+      - uses: arduino/setup-arduino-cli@v2
+        with: {version: "1.5.0"}
+      - run: arduino-cli core update-index && arduino-cli core install arduino:mbed_rp2040
       - name: Compile ground safety controller
-        run: |
-          arduino-cli compile --warnings all --fqbn arduino:mbed_rp2040:pico \
-            hardware/common/firmware/safety_controller
+        run: arduino-cli compile --warnings all --fqbn arduino:mbed_rp2040:pico hardware/common/firmware/safety_controller
       - name: Compile Sentinel mast controller
-        run: |
-          arduino-cli compile --warnings all --fqbn arduino:mbed_rp2040:pico \
-            hardware/sentinel-rev-a/firmware/mast_controller
+        run: arduino-cli compile --warnings all --fqbn arduino:mbed_rp2040:pico hardware/sentinel-rev-a/firmware/mast_controller
+      - name: Compile Security Sensor Hub
+        run: arduino-cli compile --warnings all --fqbn arduino:mbed_rp2040:pico hardware/security-sensor-hub-rev-a/firmware/sensor_hub

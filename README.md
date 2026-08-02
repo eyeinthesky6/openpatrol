@@ -1,106 +1,89 @@
 # OpenPatrol
 
-OpenPatrol is a mobility-agnostic, local-first patrol and evidence reference system. It ships a working software simulation—not a mock screen—that closes the loop from route execution and detection through tamper-evident evidence, human review, audit history, safety-state controls and observability.
+OpenPatrol is an open, local-first patrol and security command centre. It combines mobile robots, drones, existing cameras, NVR/VMS events, alarm/access systems and fixed sensors into one human-reviewed incident, evidence and alert workflow.
 
 ![OpenPatrol ready-to-test prototype family design](docs/assets/openpatrol-hardware-family-concept.svg)
 
-> **Engineering-source-aligned design render, not built hardware.** Rover One, TriScout, AirScout and Sentinel have inspectable ready-to-test prototype engineering packs. All remain physically unvalidated until fabricated units pass the committed acceptance protocols.
+> **Ready-to-test prototype source, not field-certified hardware.** Rover One, TriScout, AirScout, Sentinel and the fixed Security Sensor Hub have inspectable engineering sources. Every design remains **physically unvalidated** until fabricated units pass the committed acceptance tests; site-specific AI acceptance is also required.
 
 ## Install the lightweight core
 
-The core uses Python 3.11+ and no third-party runtime packages:
+Python 3.11+; no third-party runtime dependency for the command-centre demo:
 
 ```bash
 pipx install git+https://github.com/eyeinthesky6/openpatrol.git
 openpatrol
 ```
 
-Open `http://127.0.0.1:8765`. The wheel includes the dashboard and default warehouse scenario. Run `openpatrol doctor` to inspect optional capabilities and `openpatrol setup` before installing heavy components.
+Open `http://127.0.0.1:8765`. The wheel includes the dashboard and default warehouse scenario. `openpatrol doctor` explains optional integrations without silently installing multi-gigabyte packages.
 
-From a repository checkout, Docker users can run:
+From a checkout:
 
 ```bash
-./scripts/openpatrol up
+./scripts/openpatrol up        # lightweight command centre
+./scripts/openpatrol vision    # camera recording/detection via Frigate/go2rtc
+./scripts/openpatrol security  # MQTT alarm/access/sensor bridge
+./scripts/openpatrol full      # camera + security bridge
 ```
-
-The script creates local secrets, builds the non-root image, waits for the health endpoint and only then prints the dashboard URL.
-
-## Optional components
-
-OpenPatrol does **not** silently install multi-gigabyte robotics packages.
-
-- `openpatrol setup --with vision` explains the Docker/Frigate camera path.
-- `openpatrol setup --with ros-gazebo` checks ROS 2 Jazzy and Gazebo Harmonic.
-- `openpatrol setup --with mavros-air` checks the AirScout MAVROS boundary.
-- `openpatrol setup --with openscad` checks hardware-export capability.
-- From a checkout, set `CAMERA_RTSP_URL` in `.env` and run `./scripts/openpatrol vision`.
 
 ## What works
 
-- configurable waypoint patrol with pause, resume, return-to-dock and E-stop simulation states
-- synthetic detections and authenticated external detection ingestion
-- atomic evidence receipts with immutable capture and append-only review history
-- responsive local operator UI, incident filters and review dispositions
-- versioned JSON API, health endpoint, Prometheus-compatible metrics and security headers
-- provider-neutral vision adapter and pinned optional Frigate/Mosquitto profile
-- ROS 2 Jazzy ground safety adapter, SLAM Toolbox/Nav2 configuration and Gazebo Harmonic warehouse twin
-- physical serial boundary for Rover One, TriScout and Sentinel drive controllers
-- independent Sentinel mast protocol, bridge and reference RP2040 firmware
-- bounded AirScout velocity-intent adapter behind an ArduPilot/PX4-owned flight controller
-- deterministic acceptance models for AirScout geofence/command loss and Sentinel mast/speed interlocks
-- four cost-controlled hardware engineering packs with CAD, BOM, wiring and compatibility profiles
+### Open command centre
 
-Run verification with:
+- camera wall and device inventory for OpenPatrol and third-party systems
+- RTSP/ONVIF-compatible camera path through pinned Frigate/go2rtc
+- authenticated generic security-event API plus Frigate, MQTT, NDJSON and sensor-hub adapters
+- conservative multi-sensor candidates for falls, intrusion/break-in, drowning/distress, fights, sudden movement, fire/smoke, panic, tamper, loitering and restricted-zone entry
+- weak observations retained without automatically becoming alarms
+- browser audio/notifications, local strobe/siren routing, text announcements and recorded operator talkback
+- allow-listed endpoint agent; no remote shell execution
+- tamper-evident evidence receipts, human review, subject labels and audit history
+
+### Patrol and hardware
+
+- waypoint patrol with pause, resume, dock return and E-stop simulation states
+- ROS 2 Jazzy safety adapter, SLAM Toolbox/Nav2 configuration and Gazebo Harmonic warehouse twin
+- physical serial boundary for Rover One, TriScout and Sentinel drive controllers
+- independent Sentinel telescoping mast protocol, bridge and RP2040 firmware
+- bounded AirScout velocity intent behind ArduPilot/PX4-owned flight control/failsafes
+- four coordinated robot/drone engineering packs plus the fixed Security Sensor Hub Rev A
+
+Run checks:
 
 ```bash
 ./scripts/check.sh
 openpatrol hardware check all
+./scripts/openpatrol export-hardware all
 ```
 
 ## Hardware reference builds
 
-| Platform | Architecture | Prototype role | Engineering BOM |
-|---|---|---|---:|
-| Rover One Rev A | four-wheel skid steer | robust primary ground reference | ₹36,891 |
-| TriScout Rev A | two-wheel differential + caster | lowest-cost smooth-floor reference | ₹32,499 |
-| AirScout Rev A | guard-ready X quadcopter | supervised aerial inspection | ₹44,980 |
-| Sentinel Rev A | four-wheel base + telescoping masked head | elevated sensing and telepresence | ₹66,890 |
+| Platform | Prototype role | Engineering BOM |
+|---|---|---:|
+| Rover One Rev A | robust four-wheel ground patrol | ₹36,891 |
+| TriScout Rev A | lowest-cost smooth-floor rover | ₹32,499 |
+| AirScout Rev A | supervised aerial inspection | ₹44,980 |
+| Sentinel Rev A | elevated sensing/telepresence, 980–1,500 mm head | ₹66,890 |
+| Security Sensor Hub Rev A | 8 wired zones plus speaker/strobe/siren | ₹8,700 |
 
-Sentinel's sensor head retracts to about 980 mm and extends to 1,500 mm. The mast is separately controlled, self-locking/braked, hard-limited and tilt-interlocked; ground speed is capped at 0.18 m/s when raised. AirScout keeps attitude, arming, motor mixing, geofence and failsafes inside ArduPilot/PX4—OpenPatrol supplies only bounded velocity intent.
+All figures are prototype sourcing estimates excluding labour, tax, validation and connected third-party equipment.
 
-Export every fabrication pack with:
+## Open integration contracts
 
-```bash
-./scripts/openpatrol export-hardware all
-```
+- cameras: RTSP/go2rtc/Frigate, or any provider that posts the security-event schema
+- NVR/VMS/AI: `openpatrol-vision-adapter`
+- alarm/access/Home Assistant: `openpatrol-security-bridge` over NDJSON or MQTT
+- wired relays: `openpatrol-sensor-hub`
+- robots/speakers/strobes/sirens: `openpatrol-device-agent`
 
-See `docs/family-design-language.md`, `docs/hardware-platforms.md`, `docs/hardware-build-guide.md` and `hardware/`.
+See `docs/command-centre.md`, `docs/ai-incident-detection.md`, `docs/security-sensor-hub.md`, `docs/hardware-platforms.md` and `docs/hardware-build-guide.md`.
 
-![Sentinel retracted and extended mast envelope](docs/assets/sentinel-mast-envelope.svg)
+## Accuracy and safety boundary
 
-The visuals communicate the exterior design embodied by the family CAD. They are not field-test photographs. The checked-in Gazebo validation remains focused on the Rover One ground path; AirScout and Sentinel have deterministic contract tests and physical integration source but still require fabricated-unit validation.
+OpenPatrol creates incident candidates. It does not guarantee detection of every incident, and camera AI must be calibrated and measured on each site. Fire, pool, medical, access-control and other certified systems remain independently operational. Face recognition, covert monitoring, weapons, pursuit and autonomous physical intervention are excluded.
 
-## Configuration
+Physical ground robots require hardwired drive cuts, controller watchdogs, measured stopping envelopes and supervised acceptance. AirScout requires autopilot-owned arming, geofence and command/battery failsafes plus applicable aviation/site review. Browser controls never replace physical safety circuits.
 
-| Variable | Default | Purpose |
-|---|---|---|
-| `OPENPATROL_HOST` | `127.0.0.1` | Bind address; container sets `0.0.0.0` |
-| `OPENPATROL_PORT` | `8765` | HTTP port |
-| `OPENPATROL_DATA` | `./runtime` | Persistent local evidence directory |
-| `OPENPATROL_SCENARIO` | bundled warehouse | Simulation scenario |
-| `OPENPATROL_TICK_SECONDS` | `0.4` | Simulation tick interval |
-| `OPENPATROL_INGEST_TOKEN` | unset | Bearer token enabling detection ingestion |
-| `OPENPATROL_OPERATOR_TOKEN` | unset | Bearer token protecting commands and review |
-| `OPENPATROL_SIGNING_KEY` | unset | HMAC-SHA256 receipt-origin key |
-| `OPENPATROL_RETENTION_DAYS` | `30` | Maximum evidence age |
-| `OPENPATROL_MAX_RECORDS` | `5000` | Hard receipt cap |
+For LAN use, set separate operator, ingest and device tokens and put HTTP behind an authenticated TLS gateway or VPN. Do not expose OpenPatrol, MQTT, Frigate/go2rtc, ROS 2 or MAVLink directly to the internet.
 
-For LAN use, set both tokens and put HTTP behind an authenticated TLS gateway or VPN. Do not expose OpenPatrol, ROS 2, MAVLink/MAVROS, MQTT, Frigate or go2rtc directly to the internet.
-
-## Safety and project boundaries
-
-The browser E-stop is a product-state demonstration. Physical ground robots require hardwired power interruption, controller-level watchdogs, charging interlocks and measured stopping envelopes independent of Linux, Wi-Fi and the browser. AirScout requires autopilot-owned arming and failsafes plus applicable site and aviation review. OpenPatrol excludes weapons, pursuit, deliberate contact, face recognition and covert monitoring.
-
-“Ready-to-test prototype” means the source is sufficiently specified for competent fabrication and supervised bring-up. It does not mean commercially certified, production proven or safe for unsupervised public deployment.
-
-Software is Apache-2.0. Original hardware source is intended for CERN-OHL-P-2.0 distribution. Documentation and concept media must retain their stated licences and provenance.
+Software is Apache-2.0. Original hardware source is intended for CERN-OHL-P-2.0 distribution.
