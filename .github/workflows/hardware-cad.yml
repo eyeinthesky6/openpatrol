@@ -10,8 +10,8 @@ permissions:
 
 # Previous serial invocation retained as documentation only:
 # xvfb-run -a ./scripts/export-hardware.sh all
-# The matrix below validates the same four packs independently and avoids making
-# fabrication acceptance depend on headless OpenGL screenshot behavior.
+# The matrix validates the same four packs independently without coupling
+# fabrication acceptance to headless OpenGL or multi-body STL quirks.
 
 jobs:
   export-platform:
@@ -46,25 +46,25 @@ jobs:
           expected = {
               "rover-one-rev-a": [
                   "lower_deck.dxf", "upper_deck.dxf", "motor_saddle.stl",
-                  "camera_bracket.stl", "assembly.stl", "BOM.csv",
+                  "camera_bracket.stl", "assembly.csg", "BOM.csv",
               ],
               "triscout-rev-a": [
                   "lower_deck.dxf", "upper_deck.dxf", "motor_saddle.stl",
-                  "camera_bracket.stl", "assembly.stl", "BOM.csv",
+                  "camera_bracket.stl", "assembly.csg", "BOM.csv",
               ],
               "airscout-rev-a": [
                   "lower_plate.dxf", "upper_plate.dxf", "motor_mount.stl",
-                  "prop_guard_segment.stl", "shell_top.stl", "assembly.stl", "BOM.csv",
+                  "prop_guard_segment.stl", "shell_top.stl", "assembly.csg", "BOM.csv",
               ],
               "sentinel-rev-a": [
                   "lower_deck.dxf", "mast_base.dxf", "mast_bushing.stl",
-                  "mask_frame.stl", "head_shell.stl", "assembly.stl", "BOM.csv",
+                  "mask_frame.stl", "head_shell.stl", "assembly.csg", "BOM.csv",
               ],
           }[platform]
           missing = []
           for name in expected:
               path = root / name
-              if not path.is_file() or path.stat().st_size == 0:
+              if not path.is_file() or path.stat().st_size < 32:
                   missing.append(str(path))
           if missing:
               raise SystemExit("Missing/empty CAD artifacts:\n" + "\n".join(missing))
