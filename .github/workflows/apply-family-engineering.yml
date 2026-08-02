@@ -1,24 +1,23 @@
 name: apply-family-engineering-overlay
 
 on:
-  push:
-    branches:
-      - agent/complete-airscout-sentinel-family
-    paths:
-      - .openpatrol/READY
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches: [main]
+  workflow_dispatch:
 
 permissions:
   contents: write
 
 jobs:
   apply:
-    if: github.ref_name == 'agent/complete-airscout-sentinel-family'
+    if: github.event_name == 'workflow_dispatch' || github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ github.ref_name }}
+          ref: ${{ github.head_ref || github.ref_name }}
           fetch-depth: 0
       - name: Apply reviewed engineering overlay
         shell: bash
@@ -35,4 +34,4 @@ jobs:
           git config user.email "actions@users.noreply.github.com"
           git add -A
           git commit -m "Complete AirScout and Sentinel Rev-A engineering family"
-          git push origin "HEAD:${GITHUB_REF_NAME}"
+          git push origin "HEAD:${{ github.head_ref || github.ref_name }}"
