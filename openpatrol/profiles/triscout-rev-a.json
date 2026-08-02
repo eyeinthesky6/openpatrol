@@ -1,0 +1,84 @@
+{
+  "profile_version": "openpatrol.hardware/v1",
+  "id": "triscout-rev-a",
+  "name": "OpenPatrol TriScout Rev A",
+  "status": "engineering-release-unvalidated",
+  "chassis": {
+    "length_mm": 390,
+    "width_mm": 340,
+    "height_mm": 230,
+    "structural_deck_mm": [370, 280, 3],
+    "cover_material": "2 mm ABS sheet on printed corner blocks",
+    "footprint_mm": [[-195, 0], [130, -170], [195, -120], [195, 120], [130, 170]]
+  },
+  "drive": {
+    "type": "two_wheel_differential_with_caster",
+    "wheel_count": 2,
+    "wheel_diameter_mm": 100,
+    "wheel_width_mm": 40,
+    "wheelbase_mm": 255,
+    "wheel_track_mm": 300,
+    "motor_family": "12 V 100 RPM 37 mm/Johnson metal gearmotor with quadrature encoder",
+    "motor_rpm": 100,
+    "max_speed_mps": 0.42,
+    "max_angular_rps": 1.1
+  },
+  "mass": {
+    "target_empty_kg": 8.0,
+    "max_payload_kg": 3.0,
+    "max_total_kg": 12.0,
+    "cg_height_max_mm": 160
+  },
+  "power": {
+    "battery_chemistry": "LiFePO4",
+    "battery_nominal_v": 12.8,
+    "battery_ah": 8,
+    "average_load_w": 28,
+    "target_runtime_h": 2.7,
+    "main_fuse_a": 20,
+    "drive_fuse_a": 15,
+    "compute_fuse_a": 7.5,
+    "compute_converter": "12.8 V to regulated 5.1 V 6 A"
+  },
+  "safety": {
+    "command_timeout_ms": 250,
+    "design_deceleration_mps2": 0.9,
+    "static_margin_m": 0.1,
+    "estop_architecture": "normally_closed_hardwired_drive_cut",
+    "bumper_switch_count": 3,
+    "independent_motor_watchdog": true,
+    "charging_drive_interlock": true
+  },
+  "sensors": {
+    "lidar": "LD06/LD19-class 2D lidar, 12 m nominal",
+    "camera": "1080p UVC or CSI camera",
+    "encoders": "quadrature on both drive motors",
+    "bumper": "front floating bar and two side/rear NC switches"
+  },
+  "compute": {
+    "baseline": "Raspberry Pi 5 4 GB with active cooling",
+    "controller": "RP2040/ESP32-S3 safety I/O and encoder controller",
+    "storage": "64 GB endurance microSD or NVMe"
+  },
+  "ros": {
+    "kinematics": "differential drive",
+    "topics": {
+      "command": "/cmd_vel_safe",
+      "odometry": "/odom",
+      "scan": "/scan",
+      "battery": "/battery_state",
+      "estop": "/hardware/estop"
+    }
+  },
+  "cost": {
+    "currency": "INR",
+    "estimated_bom_inr": 32499,
+    "price_checked": "2026-08-02",
+    "excludes": ["labour", "shipping", "tax variation", "physical certification"]
+  },
+  "files": {
+    "cad": "hardware/triscout-rev-a/cad/triscout.scad",
+    "bom": "hardware/triscout-rev-a/BOM.csv",
+    "wiring": "hardware/triscout-rev-a/wiring.md"
+  }
+}

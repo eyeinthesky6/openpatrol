@@ -5,16 +5,16 @@ ROOT=Path(__file__).resolve().parents[1]
 
 class RosAssetsTest(unittest.TestCase):
     def test_gazebo_and_package_xml_are_well_formed(self):
-        files=[ROOT/"ros2/openpatrol_simulation/package.xml",ROOT/"ros2/openpatrol_simulation/models/openpatrol/model.config",ROOT/"ros2/openpatrol_simulation/models/openpatrol/model.sdf",ROOT/"ros2/openpatrol_simulation/worlds/warehouse.sdf",ROOT/"ros2/openpatrol_simulation/urdf/openpatrol_mock.urdf.xacro"]
+        files=[ROOT/"ros2/openpatrol_simulation/package.xml",ROOT/"ros2/openpatrol_adapter/package.xml",ROOT/"ros2/openpatrol_simulation/models/openpatrol/model.config",ROOT/"ros2/openpatrol_simulation/models/openpatrol/model.sdf",ROOT/"ros2/openpatrol_simulation/worlds/warehouse.sdf",ROOT/"ros2/openpatrol_simulation/urdf/openpatrol_mock.urdf.xacro"]
         for path in files:
             with self.subTest(path=path): ET.parse(path)
-    def test_gazebo_contract_uses_safe_command_and_required_sensors(self):
+    def test_gazebo_contract_matches_rover_one_rev_a(self):
         model=(ROOT/"ros2/openpatrol_simulation/models/openpatrol/model.sdf").read_text()
         bridge=(ROOT/"ros2/openpatrol_simulation/config/bridge.yaml").read_text()
         for value in ("/cmd_vel_safe","/odom","/scan","/imu","/camera/image_raw"):
             self.assertIn(value,model+bridge)
-        self.assertIn("<max_linear_velocity>0.5</max_linear_velocity>",model)
-        self.assertIn("<wheel_separation>0.32</wheel_separation>",model)
+        for value in ("<max_linear_velocity>0.45</max_linear_velocity>","<wheel_separation>0.34</wheel_separation>","<wheel_radius>0.05</wheel_radius>","left_front_joint","left_rear_joint","right_front_joint","right_rear_joint"):
+            self.assertIn(value,model)
         world=(ROOT/"ros2/openpatrol_simulation/worlds/warehouse.sdf").read_text()
         self.assertIn("<uri>../models/openpatrol</uri>",world)
     def test_ros_command_limits_reject_non_finite_values(self):
@@ -38,13 +38,43 @@ class RosAssetsTest(unittest.TestCase):
         virtual_lidar=(ROOT/"ros2/openpatrol_adapter/openpatrol_adapter/virtual_lidar.py").read_text()
         for value in ("wall_range","LaserScan","/scan","360"): self.assertIn(value,virtual_lidar)
         self.assertIn("virtual_lidar",(ROOT/"ros2/openpatrol_simulation/launch/gazebo_headless.launch.py").read_text())
-    def test_hardware_proposals_are_editable_and_honestly_labelled(self):
+    def test_physical_controller_bridge_closes_the_hardware_boundary(self):
+        setup=(ROOT/"ros2/openpatrol_adapter/setup.py").read_text()
+        bridge=(ROOT/"ros2/openpatrol_adapter/openpatrol_adapter/serial_motor_bridge.py").read_text()
+        launch_path=ROOT/"ros2/openpatrol_adapter/launch/physical_rover.launch.py"
+        launch=launch_path.read_text()
+        firmware=(ROOT/"hardware/common/firmware/safety_controller.ino").read_text()
+        protocol=(ROOT/"hardware/common/serial-protocol.md").read_text()
+        self.assertTrue(launch_path.is_file())
+        self.assertIn("serial_motor_bridge",setup+launch)
+        for value in ("/cmd_vel_safe","/odom","/battery_state","/hardware/estop","encode_command","parse_status"):
+            self.assertIn(value,bridge)
+        for value in ("COMMAND_TIMEOUT_MS=200","crc16","safetyLoopOk","DRIVER_ENABLE","COUNTS_PER_WHEEL_REV"):
+            self.assertIn(value,firmware)
+        for value in ("CRC16-CCITT","normally-closed","$C,sequence","$S,sequence"):
+            self.assertIn(value,protocol)
+    def test_rev_a_hardware_packs_are_complete_and_honestly_labelled(self):
         readme=(ROOT/"README.md").read_text(); platforms=(ROOT/"docs/hardware-platforms.md").read_text()
-        for relative in ("hardware/reference-rover4/cad/base.scad","hardware/reference-triscout/cad/base.scad","docs/assets/openpatrol-hardware-family-concept.png","docs/assets/openpatrol-warehouse-concept.png"):
+        for relative in (
+            "hardware/rover-one-rev-a/cad/rover_one.scad",
+            "hardware/rover-one-rev-a/BOM.csv",
+            "hardware/rover-one-rev-a/wiring.md",
+            "hardware/triscout-rev-a/cad/triscout.scad",
+            "hardware/triscout-rev-a/BOM.csv",
+            "hardware/triscout-rev-a/wiring.md",
+            "openpatrol/profiles/rover-one-rev-a.json",
+            "openpatrol/profiles/triscout-rev-a.json",
+            "docs/assets/openpatrol-hardware-family-concept.png",
+            "docs/assets/openpatrol-warehouse-concept.png",
+        ):
             self.assertTrue((ROOT/relative).is_file(),relative)
-        for value in ("Concept render, not built hardware","AI-generated operating concept"):
+        for cad in (ROOT/"hardware/rover-one-rev-a/cad/rover_one.scad",ROOT/"hardware/triscout-rev-a/cad/triscout.scad"):
+            text=cad.read_text()
+            for value in ("bumper_bar","corner_block","cable_guide","camera_bracket","linear_extrude(2) square"):
+                self.assertIn(value,text)
+        for value in ("Concept render, not built hardware","physically unvalidated"):
             self.assertIn(value,readme)
-        for value in ("OpenPatrol Rover One","OpenPatrol TriScout","OpenPatrol AirScout","OpenPatrol Sentinel","current repository does not yet implement"):
+        for value in ("Complete Rev-A engineering pack","AirScout","Sentinel","physical validation pending"):
             self.assertIn(value,platforms)
 
 if __name__=="__main__": unittest.main()

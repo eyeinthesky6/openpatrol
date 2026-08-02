@@ -1,0 +1,21 @@
+line,subsystem,item,baseline_part_or_spec,qty,unit_inr,extended_inr,critical_requirement,substitute_rule
+1,structure,Lower and upper decks,3 mm 5052 aluminium laser-cut from supplied DXF,2,1200,2400,Flat within 1.5 mm and deburred,6 mm HDPE or birch ply only for indoor prototype
+2,structure,ABS cover panels,2 mm ABS sheet heat-bent or flat panels with corner blocks,1,900,900,Non-structural removable cover,Do not use brittle acrylic
+3,structure,Fasteners and standoffs,M4 stainless plus M3 electronics kit,1,850,850,Thread-lock on drive hardware,Equivalent metric hardware
+4,drive,Gearmotor,12 V 100 RPM 37 mm/Johnson metal gearbox encoder-compatible,4,561,2244,Matched ratio and 6 mm D shaft,100-120 RPM accepted after profile update
+5,drive,Quadrature encoder kit,Two-channel Hall encoder for motor back shaft,4,250,1000,Direction plus speed feedback,Minimum one encoder per side for prototype only
+6,drive,Wheel,100 mm x 40 mm rubber wheel for 6 mm shaft,4,135,540,Non-marking and concentric,Use keyed hub adapter if shaft differs
+7,drive,Motor driver,Cytron MDD10A dual 10 A or equivalent protected dual H-bridge,1,1858,1858,10 A continuous per side and enable input,No L298N or unprotected hobby bridge
+8,control,Safety controller,RP2040 or ESP32-S3 dev board with isolated/level-shifted I/O,1,700,700,250 ms watchdog and encoder capture,STM32 equivalent accepted
+9,compute,Raspberry Pi 5 4 GB,Official board,1,5799,5799,Active cooling and 5.1 V supply,Pi 4 4 GB accepted with reduced vision load
+10,compute,Active cooler and endurance storage,Official cooler plus 64 GB endurance microSD,1,1200,1200,Thermal throttling test required,NVMe accepted
+11,navigation,2D lidar,LD06 or LD19 class 360 degree lidar,1,6500,6500,ROS 2 driver and 8 m usable range minimum,RPLidar A1 accepted with mount adapter
+12,sensing,Front camera,1080p UVC or CSI camera,1,1200,1200,Fixed focus chosen for site distance,RTSP camera accepted if separately powered
+13,power,Battery,12.8 V 12 Ah LiFePO4 with 20 A or higher BMS,1,5500,5500,Qualified pack and protected terminals,8 Ah accepted with shorter runtime profile
+14,power,Compute DC-DC,12.8 V to regulated 5.1 V 6 A buck converter,1,900,900,Low-voltage and thermal protection,Use separate fused converter
+15,power,Protection and harness,25 A main fuse; 20 A drive; 7.5 A compute; XT60; ferrules; 2.5 mm2 drive wire,1,1700,1700,No Dupont wiring in power path,Equivalent automotive hardware
+16,safety,E-stop and drive relay,NC twist-release mushroom plus 30 A automotive relay/contactor,1,900,900,Physically removes motor power,Driver enable may be secondary not sole cut
+17,safety,Bumper bars and switches,Front/rear floating bars with four NC roller microswitches,1,900,900,Opening any switch drops drive enable,Industrial safety edge optional upgrade
+18,fabrication,Printed parts,4 motor saddles; 4 corner blocks; camera bracket; cable guides; bumper-bar pivots,1,800,800,PETG/ASA 4 perimeters 40 percent infill,Nylon accepted
+19,misc,Beacon; labels; connectors; spare fuse; guards,Low-voltage visible status lamp and service kit,1,1000,1000,Drive-enabled state visible,Equivalent
+TOTAL,,,,,,36891,,
