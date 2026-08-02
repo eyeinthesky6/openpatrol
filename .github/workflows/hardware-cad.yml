@@ -10,14 +10,13 @@ permissions:
 
 # Previous serial invocation retained for migration/readability tests:
 # xvfb-run -a ./scripts/export-hardware.sh all
-# The matrix validates all four packs independently. OpenSCAD 2021.01 can
-# return non-zero after writing a valid multi-body mesh, so the export script
-# validates the non-empty artifact rather than trusting the process code alone.
+# Individual parts are manufacturing DXF/STL. The complete parametric assembly
+# is checked as CSG; combined multi-body STL and PNG renders remain optional.
 
 jobs:
   export-platform:
     runs-on: ubuntu-latest
-    timeout-minutes: 35
+    timeout-minutes: 20
     strategy:
       fail-fast: false
       matrix:
@@ -41,34 +40,16 @@ jobs:
           python - <<'PY'
           import os
           from pathlib import Path
-
           platform = os.environ["PLATFORM"]
           root = Path("dist/hardware") / platform
           expected = {
-              "rover-one-rev-a": [
-                  "lower_deck.dxf", "upper_deck.dxf", "motor_saddle.stl",
-                  "camera_bracket.stl", "assembly.stl", "BOM.csv",
-              ],
-              "triscout-rev-a": [
-                  "lower_deck.dxf", "upper_deck.dxf", "motor_saddle.stl",
-                  "camera_bracket.stl", "assembly.stl", "BOM.csv",
-              ],
-              "airscout-rev-a": [
-                  "lower_plate.dxf", "upper_plate.dxf", "motor_mount.stl",
-                  "prop_guard_segment.stl", "shell_top.stl", "assembly.stl", "BOM.csv",
-              ],
-              "sentinel-rev-a": [
-                  "lower_deck.dxf", "mast_base.dxf", "mast_bushing.stl",
-                  "mask_frame.stl", "head_shell.stl", "assembly.stl", "BOM.csv",
-              ],
+              "rover-one-rev-a": ["lower_deck.dxf", "upper_deck.dxf", "motor_saddle.stl", "camera_bracket.stl", "assembly.csg", "BOM.csv"],
+              "triscout-rev-a": ["lower_deck.dxf", "upper_deck.dxf", "motor_saddle.stl", "camera_bracket.stl", "assembly.csg", "BOM.csv"],
+              "airscout-rev-a": ["lower_plate.dxf", "upper_plate.dxf", "motor_mount.stl", "prop_guard_segment.stl", "shell_top.stl", "assembly.csg", "BOM.csv"],
+              "sentinel-rev-a": ["lower_deck.dxf", "mast_base.dxf", "mast_bushing.stl", "mask_frame.stl", "head_shell.stl", "assembly.csg", "BOM.csv"],
           }[platform]
-          missing = []
-          for name in expected:
-              path = root / name
-              if not path.is_file() or path.stat().st_size < 32:
-                  missing.append(str(path))
-          if missing:
-              raise SystemExit("Missing/empty CAD artifacts:\n" + "\n".join(missing))
+          missing = [str(root / name) for name in expected if not (root / name).is_file() or (root / name).stat().st_size < 32]
+          if missing: raise SystemExit("Missing/empty CAD artifacts:\n" + "\n".join(missing))
           print(f"Verified {platform}: {len(expected)} required artifacts")
           PY
       - uses: actions/upload-artifact@v4
