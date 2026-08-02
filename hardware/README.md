@@ -1,24 +1,19 @@
 # OpenPatrol hardware
 
-OpenPatrol contains four Rev-A prototype engineering packs aligned to the same visual and software family.
+OpenPatrol contains four coordinated mobile Rev-A engineering packs and one fixed security/audio hub.
 
 | Platform | Use | Engineering BOM | Source |
 |---|---|---:|---|
-| **Rover One Rev A** | Robust four-wheel indoor patrol base; 5 kg payload | ₹36,891 | `rover-one-rev-a/` |
-| **TriScout Rev A** | Simpler two-wheel/caster base; 3 kg payload | ₹32,499 | `triscout-rev-a/` |
-| **AirScout Rev A** | Guard-ready supervised inspection quadcopter; 0.35 kg payload | ₹44,980 | `airscout-rev-a/` |
-| **Sentinel Rev A** | Four-wheel elevated-view sentry with 1.5 m telescoping masked head | ₹66,890 | `sentinel-rev-a/` |
+| Rover One Rev A | Robust four-wheel indoor patrol base | ₹36,891 | `rover-one-rev-a/` |
+| TriScout Rev A | Simpler two-wheel/caster base | ₹32,499 | `triscout-rev-a/` |
+| AirScout Rev A | Guard-ready supervised inspection quadcopter | ₹44,980 | `airscout-rev-a/` |
+| Sentinel Rev A | Elevated-view sentry with 1.5 m telescoping masked head | ₹66,890 | `sentinel-rev-a/` |
+| Security Sensor Hub Rev A | 8 wired zones, speaker, strobe and siren endpoint | ₹8,700 | `security-sensor-hub-rev-a/` |
 
-Each pack contains parametric OpenSCAD, fabrication/export targets, BOM, wiring, assembly guidance and a machine-readable software compatibility profile. Sentinel additionally contains a mast protocol and controller firmware. Run `./scripts/openpatrol export-hardware all` to generate DXF/STL/preview artifacts.
+The mobile packs include parametric CAD, fabrication targets, BOM, wiring, assembly guidance and software compatibility profiles. Sentinel adds mast firmware/protocol. The fixed hub adds supervised-loop electronics, endpoint outputs, enclosure CAD and RP2040 firmware.
 
-## Shared family
+All share the same command-centre contracts: observations enter `POST /api/v1/security-events`; compatible output endpoints poll an allow-listed device-command queue.
 
-`common/cad/family_style.scad` defines the exterior modules and colour/material contract used by all four platforms. Rover One and TriScout retain their proven flat-sheet structural files and add family-style exterior preview sources; AirScout and Sentinel use the family modules directly.
+## Engineering-release meaning
 
-The ground platforms share a CRC-checked drive protocol and independent normally-closed safety loop. AirScout uses an independent ArduPilot/PX4 flight controller and a bounded MAVLink velocity adapter instead of reusing ground-drive firmware.
-
-## What “engineering release” means
-
-The files are dimensioned and connected well enough for quotation, fabrication, assembly and prototype bring-up. They are **not physical test certificates**. Supplier variation, mass, centre of gravity, motor current, tyre grip, thrust margin, braking, mast stability, thermal performance, sensor blind spots, RF behaviour, charger behaviour and ingress protection must be measured on fabricated units. Until results are committed, every profile remains `engineering-release-unvalidated`.
-
-The README visuals communicate the intended exterior and are aligned to `docs/family-design-language.md`; CAD, profiles, BOMs and wiring remain the engineering source of truth.
+A competent builder can quote, fabricate, wire and bring up Rev A without inventing the architecture. None of these packs is physically validated or certified. Supplier variation, mass, stopping, thrust, thermal performance, mast stability, loop calibration, acoustics, ingress protection and site-specific AI performance must be measured before deployment.

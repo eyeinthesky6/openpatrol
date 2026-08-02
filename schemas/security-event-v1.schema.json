@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://openpatrol.dev/schemas/security-event-v1.schema.json",
+  "title": "OpenPatrol security observation v1",
+  "type": "object",
+  "required": ["id", "event_type", "severity", "confidence", "source", "device_id", "zone"],
+  "properties": {
+    "id": {"type":"string","minLength":1,"maxLength":120},
+    "event_type": {"type":"string","minLength":1,"maxLength":80},
+    "title": {"type":"string","maxLength":200},
+    "severity": {"enum":["low","medium","high","critical"]},
+    "confidence": {"type":"number","minimum":0,"maximum":1},
+    "source": {"type":"string","minLength":1,"maxLength":200},
+    "provider": {"type":"string","maxLength":120},
+    "device_id": {"type":"string","minLength":1,"maxLength":120},
+    "zone": {"type":"string","minLength":1,"maxLength":120},
+    "observed_at": {"type":["string","null"],"format":"date-time"},
+    "media_reference": {"type":"string","maxLength":1000},
+    "attributes": {"type":"object"}
+  },
+  "additionalProperties": false
+}

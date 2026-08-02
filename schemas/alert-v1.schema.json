@@ -1,0 +1,15 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "$id":"https://openpatrol.dev/schemas/alert-v1.schema.json",
+  "title":"OpenPatrol alert v1",
+  "type":"object",
+  "required":["id","incident_id","type","title","severity","confidence","zone","created_at","status"],
+  "properties":{
+    "id":{"type":"string"},"incident_id":{"type":"string"},"type":{"type":"string"},"title":{"type":"string"},
+    "severity":{"enum":["low","medium","high","critical"]},"confidence":{"type":"number","minimum":0,"maximum":1},
+    "zone":{"type":"string"},"created_at":{"type":"string","format":"date-time"},"status":{"enum":["active","acknowledged","closed"]},
+    "browser_audio":{"type":"boolean"},"target_devices":{"type":"array","items":{"type":"string"}},
+    "commands":{"type":"array","items":{"type":"string"}},"automatic_message":{"type":["string","null"]}
+  },
+  "additionalProperties":false
+}

@@ -3,82 +3,63 @@ set -euo pipefail
 project_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$project_dir"
 command_name="${1:-up}"
-require_docker() {
-  command -v docker >/dev/null 2>&1 || { echo "Docker is required: https://docs.docker.com/get-docker/" >&2; exit 1; }
-  docker compose version >/dev/null 2>&1 || { echo "Docker Compose v2 is required." >&2; exit 1; }
-}
-ensure_env() {
+require_docker(){ command -v docker >/dev/null 2>&1 || { echo "Docker is required." >&2; exit 1; }; docker compose version >/dev/null 2>&1 || { echo "Docker Compose v2 is required." >&2; exit 1; }; }
+ensure_env(){
   if [[ ! -f .env ]]; then
     umask 077
-    token="$(openssl rand -hex 24 2>/dev/null || python3 -c 'import secrets; print(secrets.token_hex(24))')"
-    signing="$(openssl rand -hex 32 2>/dev/null || python3 -c 'import secrets; print(secrets.token_hex(32))')"
-    { echo "OPENPATROL_INGEST_TOKEN=$token"; echo "OPENPATROL_SIGNING_KEY=$signing"; echo "OPENPATROL_OPERATOR_TOKEN="; echo "CAMERA_RTSP_URL=rtsp://CHANGE_ME"; echo "FRIGATE_URL="; echo "OPENPATROL_CAMERA_UI_URL="; echo "OPENPATROL_RESTRICTED_ZONES="; echo "OPENPATROL_LOITER_SECONDS=300"; } > .env
-    echo "Created private .env with detector and evidence-signing secrets."
+    secret(){ openssl rand -hex "$1" 2>/dev/null || python3 -c "import secrets; print(secrets.token_hex($1))"; }
+    { echo "OPENPATROL_INGEST_TOKEN=$(secret 24)"; echo "OPENPATROL_DEVICE_TOKEN=$(secret 24)"; echo "OPENPATROL_SIGNING_KEY=$(secret 32)"; echo "OPENPATROL_OPERATOR_TOKEN="; echo "OPENPATROL_ALERT_CONFIDENCE_FLOOR=0.70"; echo "CAMERA_RTSP_URL=rtsp://CHANGE_ME"; echo "FRIGATE_URL="; echo "OPENPATROL_CAMERA_UI_URL="; echo "OPENPATROL_RESTRICTED_ZONES="; echo "OPENPATROL_LOITER_SECONDS=300"; } > .env
+    echo "Created private .env with ingest, device and evidence-signing secrets."
   fi
 }
-wait_http() {
-  local url="$1" label="$2" seconds="${3:-90}"
-  python3 - "$url" "$label" "$seconds" <<'PY'
-import sys,time,urllib.error,urllib.request
-url,label,seconds=sys.argv[1],sys.argv[2],int(sys.argv[3]); deadline=time.monotonic()+seconds
-while time.monotonic()<deadline:
-    try:
-        with urllib.request.urlopen(url,timeout=3) as response:
-            if response.status < 500:
-                print(f"{label} healthy: {url}")
-                raise SystemExit(0)
-    except urllib.error.HTTPError as exc:
-        if exc.code < 500:
-            print(f"{label} reachable: {url}")
-            raise SystemExit(0)
-    except OSError:
-        pass
-    time.sleep(1)
-print(f"{label} did not become healthy within {seconds}s: {url}",file=sys.stderr)
-raise SystemExit(1)
+wait_http(){ python3 - "$1" "$2" "${3:-120}" <<'PY'
+import sys,time,urllib.request
+url,label,seconds=sys.argv[1],sys.argv[2],int(sys.argv[3]);end=time.monotonic()+seconds
+while time.monotonic()<end:
+ try:
+  with urllib.request.urlopen(url,timeout=3) as r:
+   if r.status<500: print(f"{label} healthy: {url}");raise SystemExit(0)
+ except OSError: pass
+ time.sleep(1)
+print(f"{label} did not become healthy: {url}",file=sys.stderr);raise SystemExit(1)
 PY
 }
-replace_env() {
-  python3 - "$1" "$2" <<'PY'
+read_env(){ python3 - "$1" <<'PY'
 from pathlib import Path
 import sys
-key,value=sys.argv[1:]; path=Path('.env'); lines=path.read_text().splitlines(); prefix=key+'='
-updated=[prefix+value if line.startswith(prefix) else line for line in lines]
-if not any(line.startswith(prefix) for line in lines): updated.append(prefix+value)
-path.write_text('\n'.join(updated)+'\n')
+p=sys.argv[1]+'='
+print(next((x.split('=',1)[1] for x in Path('.env').read_text().splitlines() if x.startswith(p)),''))
+PY
+}
+set_env(){ python3 - "$1" "$2" <<'PY'
+from pathlib import Path
+import sys
+k,v=sys.argv[1:];p=Path('.env');a=p.read_text().splitlines();q=k+'=';a=[q+v if x.startswith(q) else x for x in a]
+if not any(x.startswith(q) for x in a):a.append(q+v)
+p.write_text('\n'.join(a)+'\n')
+PY
+}
+prepare_camera(){
+  local rtsp="$(read_env CAMERA_RTSP_URL)"
+  [[ -n "$rtsp" && "$rtsp" != "rtsp://CHANGE_ME" ]] || { echo "Set CAMERA_RTSP_URL in .env." >&2; exit 2; }
+  set_env FRIGATE_URL http://frigate:5000; set_env OPENPATROL_CAMERA_UI_URL http://127.0.0.1:5000
+  mkdir -p runtime/frigate
+  CAMERA_RTSP_URL="$rtsp" python3 - <<'PY'
+import os
+from pathlib import Path
+s=Path('deploy/frigate/config.example.yml').read_text();Path('runtime/frigate/config.yml').write_text(s.replace('rtsp://CHANGE_ME',os.environ['CAMERA_RTSP_URL']))
 PY
 }
 case "$command_name" in
-  up)
-    require_docker; ensure_env
-    docker compose up --build -d openpatrol
-    if ! wait_http http://127.0.0.1:8765/api/v1/health OpenPatrol 90; then docker compose logs --tail=200 openpatrol >&2; exit 1; fi
-    echo "OpenPatrol is ready at http://127.0.0.1:8765"
-    ;;
-  vision)
-    require_docker; ensure_env
-    CAMERA_RTSP_URL="$(python3 -c 'from pathlib import Path; print(next((line.split("=",1)[1] for line in Path(".env").read_text().splitlines() if line.startswith("CAMERA_RTSP_URL=")), ""))')"
-    if [[ "$CAMERA_RTSP_URL" == "rtsp://CHANGE_ME" || -z "$CAMERA_RTSP_URL" ]]; then echo "Set CAMERA_RTSP_URL in .env, then run again." >&2; exit 2; fi
-    export CAMERA_RTSP_URL
-    replace_env FRIGATE_URL http://frigate:5000
-    replace_env OPENPATROL_CAMERA_UI_URL http://127.0.0.1:5000
-    mkdir -p runtime/frigate
-    python3 - <<'PY'
-import json, os
-from pathlib import Path
-template=Path("deploy/frigate/config.example.yml").read_text(encoding="utf-8")
-Path("runtime/frigate/config.yml").write_text(template.replace("rtsp://CHANGE_ME",json.dumps(os.environ["CAMERA_RTSP_URL"])),encoding="utf-8")
-PY
-    docker compose --profile vision up --build -d
-    if ! wait_http http://127.0.0.1:8765/api/v1/health OpenPatrol 120; then docker compose --profile vision logs --tail=200 >&2; exit 1; fi
-    if ! wait_http http://127.0.0.1:5000 Frigate 180; then docker compose --profile vision logs --tail=200 >&2; exit 1; fi
-    echo "Vision ready: OpenPatrol http://127.0.0.1:8765 · Frigate http://127.0.0.1:5000"
-    ;;
-  setup) python3 -m openpatrol.cli setup ;;
-  export-hardware) bash ./scripts/export-hardware.sh "${2:-all}" ;;
-  doctor) python3 -m openpatrol.cli doctor ;;
-  check) ./scripts/check.sh ;;
-  logs) require_docker; docker compose logs -f --tail=200 ;;
-  down) require_docker; docker compose --profile vision down ;;
-  *) echo "Usage: ./scripts/openpatrol {up|vision|setup|doctor|export-hardware|check|logs|down}" >&2; exit 2 ;;
+ up) require_docker;ensure_env;docker compose up --build -d openpatrol;wait_http http://127.0.0.1:8765/api/v1/health OpenPatrol;echo "Command centre: http://127.0.0.1:8765";;
+ vision) require_docker;ensure_env;prepare_camera;docker compose --profile vision up --build -d;wait_http http://127.0.0.1:8765/api/v1/health OpenPatrol;wait_http http://127.0.0.1:5000 Frigate 180;echo "OpenPatrol and camera stack are ready.";;
+ security) require_docker;ensure_env;docker compose --profile security up --build -d;wait_http http://127.0.0.1:8765/api/v1/health OpenPatrol;echo "OpenPatrol and MQTT security bridge are ready.";;
+ full) require_docker;ensure_env;prepare_camera;docker compose --profile full up --build -d;wait_http http://127.0.0.1:8765/api/v1/health OpenPatrol;wait_http http://127.0.0.1:5000 Frigate 180;echo "Full command-centre stack is ready.";;
+ setup) python3 -m openpatrol.cli setup;;
+ export-hardware) bash ./scripts/export-hardware.sh "${2:-all}";;
+ doctor) python3 -m openpatrol.cli doctor;;
+ check) ./scripts/check.sh;;
+ logs) require_docker;docker compose --profile full logs -f --tail=200;;
+ down) require_docker;docker compose --profile full down;;
+ *) echo "Usage: ./scripts/openpatrol {up|vision|security|full|setup|doctor|export-hardware|check|logs|down}" >&2;exit 2;;
 esac

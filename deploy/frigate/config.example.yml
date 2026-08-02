@@ -1,17 +1,25 @@
 mqtt:
   enabled: true
   host: mqtt
+
+go2rtc:
+  streams:
+    patrol_camera: rtsp://CHANGE_ME
+
 cameras:
   patrol_camera:
     ffmpeg:
       inputs:
-        - path: rtsp://CHANGE_ME
+        - path: rtsp://127.0.0.1:8554/patrol_camera
+          input_args: preset-rtsp-restream
           roles: [detect, record]
     detect:
       width: 1280
       height: 720
+      fps: 5
     objects:
       track: [person, car, bicycle, motorcycle, dog, cat]
+
 record:
   enabled: true
   retain:

@@ -5,8 +5,10 @@ services:
     environment:
       OPENPATROL_TICK_SECONDS: "0.2"
       OPENPATROL_INGEST_TOKEN: ${OPENPATROL_INGEST_TOKEN:-}
+      OPENPATROL_DEVICE_TOKEN: ${OPENPATROL_DEVICE_TOKEN:-}
       OPENPATROL_OPERATOR_TOKEN: ${OPENPATROL_OPERATOR_TOKEN:-}
       OPENPATROL_SIGNING_KEY: ${OPENPATROL_SIGNING_KEY:-}
+      OPENPATROL_ALERT_CONFIDENCE_FLOOR: ${OPENPATROL_ALERT_CONFIDENCE_FLOOR:-0.70}
       FRIGATE_URL: ${FRIGATE_URL:-}
       OPENPATROL_CAMERA_UI_URL: ${OPENPATROL_CAMERA_UI_URL:-}
     volumes:
@@ -15,17 +17,19 @@ services:
     tmpfs: [/tmp]
     security_opt: [no-new-privileges:true]
     cap_drop: [ALL]
+
   mqtt:
     image: eclipse-mosquitto:2.0.22
-    profiles: [vision]
-    volumes: ["./deploy/frigate/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro"]
+    profiles: [vision, security, full]
+    volumes: ["./deploy/mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro"]
     read_only: true
     tmpfs: [/tmp]
     security_opt: [no-new-privileges:true]
     cap_drop: [ALL]
+
   frigate:
     image: ghcr.io/blakeblackshear/frigate:0.17.1
-    profiles: [vision]
+    profiles: [vision, full]
     depends_on: [mqtt]
     shm_size: "256mb"
     ports: ["5000:5000", "8554:8554", "8555:8555/tcp", "8555:8555/udp"]
@@ -33,9 +37,10 @@ services:
       - ./runtime/frigate/config.yml:/config/config.yml:ro
       - frigate-media:/media/frigate
     security_opt: [no-new-privileges:true]
+
   vision-bridge:
     build: .
-    profiles: [vision]
+    profiles: [vision, full]
     depends_on: [openpatrol, mqtt, frigate]
     command: ["openpatrol-frigate", "--mqtt-host", "mqtt"]
     environment:
@@ -48,6 +53,38 @@ services:
     tmpfs: [/tmp]
     security_opt: [no-new-privileges:true]
     cap_drop: [ALL]
+
+  security-bridge:
+    build: .
+    profiles: [security, full]
+    depends_on: [openpatrol, mqtt]
+    command: ["openpatrol-security-bridge", "--mqtt-host", "mqtt", "--mqtt-topic", "security/#"]
+    environment:
+      OPENPATROL_URL: http://openpatrol:8765
+      OPENPATROL_INGEST_TOKEN: ${OPENPATROL_INGEST_TOKEN:-development-only}
+      OPENPATROL_SECURITY_PROVIDER: mqtt
+    read_only: true
+    tmpfs: [/tmp]
+    security_opt: [no-new-privileges:true]
+    cap_drop: [ALL]
+
+  analytics:
+    build:
+      context: .
+      dockerfile: Dockerfile.analytics
+    profiles: [analytics, full]
+    depends_on: [openpatrol, frigate]
+    command: ["--stream", "rtsp://frigate:8554/patrol_camera", "--camera", "patrol-camera", "--zone", "patrol"]
+    environment:
+      OPENPATROL_URL: http://openpatrol:8765
+      OPENPATROL_INGEST_TOKEN: ${OPENPATROL_INGEST_TOKEN:-development-only}
+      OPENPATROL_MOTION_THRESHOLD: ${OPENPATROL_MOTION_THRESHOLD:-0.12}
+      OPENPATROL_MOTION_COOLDOWN: ${OPENPATROL_MOTION_COOLDOWN:-10}
+    read_only: true
+    tmpfs: [/tmp]
+    security_opt: [no-new-privileges:true]
+    cap_drop: [ALL]
+
 volumes:
   openpatrol-data:
   frigate-media:

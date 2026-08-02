@@ -1,0 +1,19 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "$id":"https://openpatrol.dev/schemas/device-registry-v1.schema.json",
+  "title":"OpenPatrol device registration v1",
+  "type":"object",
+  "required":["id","name","kind","zone","capabilities"],
+  "properties":{
+    "id":{"type":"string","minLength":1,"maxLength":120},
+    "name":{"type":"string","minLength":1,"maxLength":160},
+    "kind":{"enum":["camera","robot","drone","sensor_hub","speaker","alarm","nvr","access_control"]},
+    "zone":{"type":"string","minLength":1,"maxLength":120},
+    "capabilities":{"type":"array","uniqueItems":true,"items":{"enum":["video","audio_in","speaker","strobe","siren","sensors","mobility","talkback"]}},
+    "streams":{"type":"object","properties":{"operator_url":{"type":"string","maxLength":1000},"snapshot_url":{"type":"string","maxLength":1000},"live_url":{"type":"string","maxLength":1000}},"additionalProperties":false},
+    "provider":{"type":"string","maxLength":120},
+    "status":{"type":"string","maxLength":40},
+    "metadata":{"type":"object"}
+  },
+  "additionalProperties":false
+}
