@@ -6,9 +6,8 @@ command -v openscad >/dev/null 2>&1 || { echo "OpenSCAD 2021.01+ is required." >
 export_one() {
   local id="$1" file="$2" out="$root/dist/hardware/$1"
   mkdir -p "$out"
-  local sheet_parts=(lower_deck upper_deck cover_top cover_side lidar_plate)
-  local printed_parts=(motor_saddle)
-  if [[ "$id" == "rover-one-rev-a" ]]; then printed_parts+=(camera_bracket); fi
+  local sheet_parts=(lower_deck upper_deck cover_top cover_side lidar_plate bumper_bar)
+  local printed_parts=(motor_saddle camera_bracket corner_block cable_guide)
   for part in "${sheet_parts[@]}"; do
     openscad -o "$out/$part.dxf" -D "part=\"$part\"" -D 'flat=true' "$file"
   done

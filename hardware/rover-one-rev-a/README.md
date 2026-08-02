@@ -15,7 +15,7 @@ Rover One is the primary OpenPatrol reference platform: four 100 mm rubber wheel
 
 1. Install OpenSCAD and run `./scripts/openpatrol export-hardware rover-one-rev-a`.
 2. Laser-cut `lower_deck.dxf`, `upper_deck.dxf`, `cover_top.dxf`, two `cover_side.dxf` panels and `lidar_plate.dxf`.
-3. Print eight motor saddles, four corner blocks, one camera bracket and cable guides in PETG/ASA.
+3. Print four motor saddles, four corner blocks, one camera bracket and cable guides in PETG/ASA.
 4. Deburr all metal, add edge protection around cable apertures and dry-assemble before wiring.
 5. Keep motor and battery mass below the upper deck. Do not place the battery on the payload plate.
 

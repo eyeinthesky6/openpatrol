@@ -13,7 +13,7 @@ TriScout is the lower-cost indoor reference: two driven 100 mm rubber wheels, on
 
 ## Fabrication and assembly
 
-Run `./scripts/openpatrol export-hardware triscout-rev-a`, laser-cut the deck and cover files, and print four motor saddles plus corner blocks. Assemble the two motors first, then set caster height so the lower deck is level under expected payload. Battery, motor driver and main fuse remain below the upper deck; Pi, safety controller and sensor wiring remain above it.
+Run `./scripts/openpatrol export-hardware triscout-rev-a`, laser-cut the deck and cover files, and print two motor saddles, four corner blocks, one camera bracket and cable guides. Assemble the two motors first, then set caster height so the lower deck is level under expected payload. Battery, motor driver and main fuse remain below the upper deck; Pi, safety controller and sensor wiring remain above it.
 
 The caster holes are slotted for common 45 × 30 mm patterns. Reject a caster with visible swivel play, a hard plastic wheel or a load rating below the complete robot mass.
 

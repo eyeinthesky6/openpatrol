@@ -1,7 +1,7 @@
 // OpenPatrol TriScout Rev A — CERN-OHL-P-2.0
 // Two driven wheels plus one industrial caster. Engineering release, physically unvalidated.
 $fn=64;
-part="assembly";           // assembly, lower_deck, upper_deck, motor_saddle, cover_top, cover_side, lidar_plate
+part="assembly";           // assembly, lower_deck, upper_deck, motor_saddle, cover_top, cover_side, lidar_plate, camera_bracket, bumper_bar, corner_block, cable_guide
 flat=false;
 material_t=3;
 mount_hole=4.4;
@@ -43,9 +43,20 @@ module motor_saddle(){
   difference(){ union(){ cube([54,20,18],center=true); translate([0,0,9]) rotate([90,0,0]) cylinder(h=20,d=46,center=true); } translate([0,0,9]) rotate([90,0,0]) cylinder(h=24,d=38.4,center=true); for(x=[-22,22]) translate([x,0,-12]) cylinder(h=30,d=5.2); translate([0,0,18]) cube([5,24,20],center=true); }
 }
 module lidar_plate(){ difference(){ rounded_plate(120,120,4,12); payload_grid(80,80,20,6); cylinder(h=6,d=18,center=true); } }
-module cover_top(){ difference(){ rounded_plate(340,255,2,30); payload_grid(120,80,20,4); for(x=[-120:15:120]) translate([x,0,-1]) slot(26,4,4); } }
-module cover_side(){ difference(){ cube([330,2,112],center=true); for(x=[-120:30:120]) translate([x,0,12]) rotate([90,0,0]) slot(18,4,5); for(x=[-150,150]) for(z=[-43,43]) translate([x,0,z]) rotate([90,0,0]) cylinder(h=5,d=4.2); } }
+module camera_bracket(){
+  difference(){ union(){ cube([70,4,42],center=true); translate([0,-18,-19]) cube([70,36,4],center=true); } for(x=[-28,28]) translate([x,0,0]) slot(16,4,8); for(x=[-25,25]) translate([x,-18,-24]) cylinder(h=12,d=4.2); }
+}
+module cover_top(){
+  difference(){ rounded_plate(340,255,2,30); payload_grid(120,80,20,4); for(x=[-120:15:120]) translate([x,0,-1]) slot(26,4,4); translate([-120,85,-1]) cylinder(h=4,d=22.5); translate([120,85,-1]) cylinder(h=4,d=16.5); }
+}
+module cover_side(){
+  // Defined flat in XY so the exported DXF is 330 x 112 mm.
+  difference(){ linear_extrude(2) square([330,112],center=true); for(x=[-120:30:120]) translate([x,12,-1]) slot(18,4,4); for(x=[-150,150]) for(y=[-43,43]) translate([x,y,-1]) cylinder(h=4,d=4.2); }
+}
+module bumper_bar(){ difference(){ rounded_plate(300,20,3,5); for(x=[-135,135]) translate([x,0,-1]) cylinder(h=5,d=5.2); } }
+module corner_block(){ difference(){ cube([24,24,28],center=true); rotate([0,90,0]) cylinder(h=34,d=4.2,center=true); rotate([90,0,0]) cylinder(h=34,d=4.2,center=true); cylinder(h=34,d=4.2,center=true); } }
+module cable_guide(){ difference(){ cube([30,12,10],center=true); translate([0,0,2]) rotate([90,0,0]) cylinder(h=16,d=8,center=true); for(x=[-11,11]) translate([x,0,-8]) cylinder(h=16,d=3.4); } }
 module wheel(y){ translate([axle_x,y,50]) rotate([90,0,0]) cylinder(h=wheel_w,d=wheel_d,center=true); }
-module assembly(){ color("silver") translate([0,0,50]) lower_deck(); color("gainsboro") translate([0,0,50+deck_gap]) upper_deck(); color("#222") wheel(-track/2); color("#222") wheel(track/2); color("#222") translate([-145,0,18]) sphere(d=60); color("white",.7) translate([0,0,188]) cover_top(); color("white",.55) for(y=[-124,124]) translate([0,y,127]) cover_side(); color("#333") translate([35,0,192]) lidar_plate(); }
-module selected(){ if(part=="lower_deck") lower_deck(); else if(part=="upper_deck") upper_deck(); else if(part=="motor_saddle") motor_saddle(); else if(part=="cover_top") cover_top(); else if(part=="cover_side") cover_side(); else if(part=="lidar_plate") lidar_plate(); else assembly(); }
-if(flat && (part=="lower_deck" || part=="upper_deck" || part=="cover_top" || part=="cover_side" || part=="lidar_plate")) projection(cut=true) selected(); else selected();
+module assembly(){ color("silver") translate([0,0,50]) lower_deck(); color("gainsboro") translate([0,0,50+deck_gap]) upper_deck(); color("#222") wheel(-track/2); color("#222") wheel(track/2); color("#222") translate([-145,0,18]) sphere(d=60); color("white",.7) translate([0,0,188]) cover_top(); color("white",.55) for(y=[-124,124]) translate([0,y,127]) rotate([90,0,0]) cover_side(); color("#333") translate([35,0,192]) lidar_plate(); color("#333") translate([185,0,135]) rotate([0,0,90]) camera_bracket(); color("orange") translate([175,0,60]) rotate([0,0,90]) bumper_bar(); }
+module selected(){ if(part=="lower_deck") lower_deck(); else if(part=="upper_deck") upper_deck(); else if(part=="motor_saddle") motor_saddle(); else if(part=="cover_top") cover_top(); else if(part=="cover_side") cover_side(); else if(part=="lidar_plate") lidar_plate(); else if(part=="camera_bracket") camera_bracket(); else if(part=="bumper_bar") bumper_bar(); else if(part=="corner_block") corner_block(); else if(part=="cable_guide") cable_guide(); else assembly(); }
+if(flat && (part=="lower_deck" || part=="upper_deck" || part=="cover_top" || part=="cover_side" || part=="lidar_plate" || part=="bumper_bar")) projection(cut=true) selected(); else selected();

@@ -53,6 +53,10 @@ class RosAssetsTest(unittest.TestCase):
             "docs/assets/openpatrol-warehouse-concept.png",
         ):
             self.assertTrue((ROOT/relative).is_file(),relative)
+        for cad in (ROOT/"hardware/rover-one-rev-a/cad/rover_one.scad",ROOT/"hardware/triscout-rev-a/cad/triscout.scad"):
+            text=cad.read_text()
+            for value in ("bumper_bar","corner_block","cable_guide","camera_bracket","linear_extrude(2) square"):
+                self.assertIn(value,text)
         for value in ("Concept render, not built hardware","physically unvalidated"):
             self.assertIn(value,readme)
         for value in ("Complete Rev-A engineering pack","AirScout","Sentinel","physical validation pending"):

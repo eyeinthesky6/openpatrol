@@ -16,6 +16,6 @@ line,subsystem,item,baseline_part_or_spec,qty,unit_inr,extended_inr,critical_req
 15,power,Protection and harness,25 A main fuse; 20 A drive; 7.5 A compute; XT60; ferrules; 2.5 mm2 drive wire,1,1700,1700,No Dupont wiring in power path,Equivalent automotive hardware
 16,safety,E-stop and drive relay,NC twist-release mushroom plus 30 A automotive relay/contactor,1,900,900,Physically removes motor power,Driver enable may be secondary not sole cut
 17,safety,Bumper bars and switches,Front/rear floating bars with four NC roller microswitches,1,900,900,Opening any switch drops drive enable,Industrial safety edge optional upgrade
-18,fabrication,Printed parts,8 motor saddles; corner blocks; camera bracket; cable guides,1,800,800,PETG/ASA 4 perimeters 40 percent infill,Nylon accepted
+18,fabrication,Printed parts,4 motor saddles; 4 corner blocks; camera bracket; cable guides; bumper-bar pivots,1,800,800,PETG/ASA 4 perimeters 40 percent infill,Nylon accepted
 19,misc,Beacon; labels; connectors; spare fuse; guards,Low-voltage visible status lamp and service kit,1,1000,1000,Drive-enabled state visible,Equivalent
 TOTAL,,,,,,36891,,

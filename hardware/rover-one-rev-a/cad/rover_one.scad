@@ -1,7 +1,7 @@
 // OpenPatrol Rover One Rev A — CERN-OHL-P-2.0
 // Engineering release. Fabrication dimensions are complete; physical validation is not.
 $fn = 64;
-part = "assembly";          // assembly, lower_deck, upper_deck, motor_saddle, cover_top, cover_side, lidar_plate, camera_bracket
+part = "assembly";          // assembly, lower_deck, upper_deck, motor_saddle, cover_top, cover_side, lidar_plate, camera_bracket, bumper_bar, corner_block, cable_guide
 flat = false;               // true for DXF projection of sheet parts
 material_t = 3;
 plate_x = 420;
@@ -61,7 +61,7 @@ module upper_deck() {
   }
 }
 module motor_saddle() {
-  // Printable clamp for a 36–38 mm motor body; two saddles per motor.
+  // Printable clamp for a 36–38 mm motor body; one saddle per motor plus anti-rotation strap.
   difference() {
     union() {
       cube([54,20,18],center=true);
@@ -87,10 +87,30 @@ module camera_bracket() {
   }
 }
 module cover_top() {
-  difference(){ rounded_plate(390,275,2,28); payload_grid(160,80,20,4); for(x=[-150:15:150]) translate([x,0,-1]) slot(28,4,4); }
+  difference(){
+    rounded_plate(390,275,2,28);
+    payload_grid(160,80,20,4);
+    for(x=[-150:15:150]) translate([x,0,-1]) slot(28,4,4);
+    translate([-150,95,-1]) cylinder(h=4,d=22.5); // E-stop
+    translate([150,95,-1]) cylinder(h=4,d=16.5);  // beacon
+  }
 }
 module cover_side() {
-  difference(){ cube([390,2,122],center=true); for(x=[-150:30:150]) translate([x,0,15]) rotate([90,0,0]) slot(18,4,5); for(x=[-175,175]) for(z=[-48,48]) translate([x,0,z]) rotate([90,0,0]) cylinder(h=5,d=4.2); }
+  // Defined flat in XY so the same source exports a correct 390 x 122 mm DXF.
+  difference(){
+    linear_extrude(2) square([390,122],center=true);
+    for(x=[-150:30:150]) translate([x,15,-1]) slot(18,4,4);
+    for(x=[-175,175]) for(y=[-48,48]) translate([x,y,-1]) cylinder(h=4,d=4.2);
+  }
+}
+module bumper_bar(){
+  difference(){ rounded_plate(360,20,3,5); for(x=[-165,165]) translate([x,0,-1]) cylinder(h=5,d=5.2); }
+}
+module corner_block(){
+  difference(){ cube([24,24,28],center=true); rotate([0,90,0]) cylinder(h=34,d=4.2,center=true); rotate([90,0,0]) cylinder(h=34,d=4.2,center=true); cylinder(h=34,d=4.2,center=true); }
+}
+module cable_guide(){
+  difference(){ cube([30,12,10],center=true); translate([0,0,2]) rotate([90,0,0]) cylinder(h=16,d=8,center=true); for(x=[-11,11]) translate([x,0,-8]) cylinder(h=16,d=3.4); }
 }
 module wheel(x,y){ translate([x,y,0]) rotate([90,0,0]) cylinder(h=wheel_w,d=wheel_d,center=true); }
 module assembly() {
@@ -98,7 +118,8 @@ module assembly() {
   color("gainsboro") translate([0,0,50+deck_gap]) upper_deck();
   for(x=[-wheelbase/2,wheelbase/2]) for(y=[-track/2,track/2]) color("#222") wheel(x,y,50);
   color("white",.7) translate([0,0,194]) cover_top();
-  color("white",.55) for(y=[-144,144]) translate([0,y,133]) cover_side();
+  color("white",.55) for(y=[-144,144]) translate([0,y,133]) rotate([90,0,0]) cover_side();
+  color("orange") for(x=[-190,190]) translate([x,0,65]) rotate([0,0,90]) bumper_bar();
   color("#333") translate([65,0,198]) lidar_plate();
   color("#333") translate([205,0,145]) rotate([0,0,90]) camera_bracket();
 }
@@ -110,6 +131,9 @@ module selected(){
   else if(part=="cover_side") cover_side();
   else if(part=="lidar_plate") lidar_plate();
   else if(part=="camera_bracket") camera_bracket();
+  else if(part=="bumper_bar") bumper_bar();
+  else if(part=="corner_block") corner_block();
+  else if(part=="cable_guide") cable_guide();
   else assembly();
 }
-if(flat && (part=="lower_deck" || part=="upper_deck" || part=="cover_top" || part=="cover_side" || part=="lidar_plate")) projection(cut=true) selected(); else selected();
+if(flat && (part=="lower_deck" || part=="upper_deck" || part=="cover_top" || part=="cover_side" || part=="lidar_plate" || part=="bumper_bar")) projection(cut=true) selected(); else selected();
