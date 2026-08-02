@@ -1,0 +1,133 @@
+{
+  "profile_version": "openpatrol.hardware/v1",
+  "id": "airscout-rev-a",
+  "name": "OpenPatrol AirScout Rev A",
+  "status": "engineering-release-unvalidated",
+  "mobility": {
+    "kind": "aerial_multirotor"
+  },
+  "visual": {
+    "family": "openpatrol-plain-future-v1",
+    "shell": "warm off-white two-piece printed/thermoformed centre shell",
+    "lower_chassis": "matte charcoal carbon arms and equipment tray",
+    "status_lights": "green/red navigation, blue system status"
+  },
+  "chassis": {
+    "length_mm": 560,
+    "width_mm": 560,
+    "height_mm": 190,
+    "structural_deck_mm": [
+      170,
+      150,
+      2
+    ],
+    "cover_material": "PETG/ASA centre shell over carbon-tube arms",
+    "footprint_mm": [
+      [
+        -280,
+        -280
+      ],
+      [
+        280,
+        -280
+      ],
+      [
+        280,
+        280
+      ],
+      [
+        -280,
+        280
+      ]
+    ]
+  },
+  "airframe": {
+    "type": "guard-ready_x_quadcopter",
+    "motor_count": 4,
+    "motor_diagonal_mm": 380,
+    "prop_diameter_in": 9,
+    "motor_family": "2216 880-950 KV brushless outrunner",
+    "esc": "35 A 4-in-1 BLHeli_32 or qualified equivalent",
+    "max_takeoff_mass_kg": 1.85,
+    "arm_material": "20 x 20 x 1.5 mm carbon square tube",
+    "prop_guard": "removable perimeter segments for indoor testing"
+  },
+  "performance": {
+    "target_hover_throttle": 0.5,
+    "max_horizontal_speed_mps": 5.0,
+    "indoor_speed_limit_mps": 1.5,
+    "max_vertical_speed_mps": 2.0,
+    "target_flight_time_min": 16.0,
+    "target_control_rate_hz": 20
+  },
+  "mass": {
+    "target_empty_kg": 1.35,
+    "max_payload_kg": 0.35,
+    "max_total_kg": 1.85,
+    "cg_height_max_mm": 35
+  },
+  "power": {
+    "battery_chemistry": "LiPo",
+    "battery_nominal_v": 14.8,
+    "battery_ah": 6.0,
+    "usable_fraction": 0.8,
+    "average_load_w": 250,
+    "main_fuse_a": 60,
+    "compute_converter": "14.8 V to regulated 5.1 V 3 A"
+  },
+  "safety": {
+    "command_timeout_ms": 500,
+    "flight_controller_failsafe": true,
+    "geofence_enabled": true,
+    "battery_failsafe": true,
+    "arming_interlock": true,
+    "propeller_guards_required_indoor": true,
+    "command_loss_action": "hover_then_land",
+    "operator_kill_channel": "dedicated RC/GCS kill mapped directly in flight controller",
+    "public_operation": "not permitted before local regulatory review and physical validation",
+    "geofence_radius_m": 25.0,
+    "geofence_ceiling_m": 8.0
+  },
+  "sensors": {
+    "flight_controller": "ArduPilot/PX4-capable H743-class controller with barometer",
+    "position": "GNSS/compass outdoors; optical flow plus rangefinder indoors",
+    "camera": "1080p CSI/UVC camera on fixed damped mount",
+    "range": "downward time-of-flight/rangefinder",
+    "navigation_lights": "front green, rear red, blue system status"
+  },
+  "compute": {
+    "baseline": "Raspberry Pi Zero 2 W or equivalent companion computer",
+    "autopilot": "ArduPilot or PX4 on independent flight controller",
+    "storage": "32 GB endurance microSD"
+  },
+  "ros": {
+    "kinematics": "6-DOF velocity setpoint through MAVROS/MAVLink",
+    "topics": {
+      "command": "/air/cmd_vel_safe",
+      "odometry": "/air/odom",
+      "battery": "/battery_state",
+      "flight_state": "/air/flight_state",
+      "estop": "/hardware/estop"
+    }
+  },
+  "cost": {
+    "currency": "INR",
+    "estimated_bom_inr": 44980,
+    "target_envelope_inr": 50000,
+    "price_checked": "2026-08-02",
+    "excludes": [
+      "charger",
+      "labour",
+      "shipping",
+      "tax variation",
+      "aviation approvals",
+      "physical certification"
+    ]
+  },
+  "files": {
+    "cad": "hardware/airscout-rev-a/cad/airscout.scad",
+    "bom": "hardware/airscout-rev-a/BOM.csv",
+    "wiring": "hardware/airscout-rev-a/wiring.md",
+    "drawings": "hardware/airscout-rev-a/drawings.md"
+  }
+}

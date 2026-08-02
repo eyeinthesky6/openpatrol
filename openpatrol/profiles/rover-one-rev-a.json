@@ -3,6 +3,13 @@
   "id": "rover-one-rev-a",
   "name": "OpenPatrol Rover One Rev A",
   "status": "engineering-release-unvalidated",
+  "mobility": {"kind": "ground_wheeled"},
+  "visual": {
+    "family": "openpatrol-plain-future-v1",
+    "shell": "warm off-white 2 mm ABS with broad soft radii",
+    "lower_chassis": "matte charcoal",
+    "status_lights": "white front, blue system, amber side markers"
+  },
   "chassis": {
     "length_mm": 440,
     "width_mm": 380,
@@ -33,6 +40,7 @@
     "battery_chemistry": "LiFePO4",
     "battery_nominal_v": 12.8,
     "battery_ah": 12,
+    "usable_fraction": 0.8,
     "average_load_w": 34,
     "target_runtime_h": 3.4,
     "main_fuse_a": 25,
@@ -73,6 +81,7 @@
   "cost": {
     "currency": "INR",
     "estimated_bom_inr": 36891,
+    "target_envelope_inr": 40000,
     "price_checked": "2026-08-02",
     "excludes": ["labour", "shipping", "tax variation", "physical certification"]
   },

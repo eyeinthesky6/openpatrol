@@ -7,7 +7,8 @@ static const uint8_t LF_A=2, LF_B=3, LR_A=4, LR_B=5;
 static const uint8_t RF_A=6, RF_B=7, RR_A=8, RR_B=9;
 static const uint8_t LEFT_PWM=10, RIGHT_PWM=11, LEFT_DIR=12, RIGHT_DIR=13;
 static const uint8_t DRIVER_ENABLE=14, SAFETY_LOOP_OK=15, ESTOP_OK=16;
-static const uint8_t DRIVER_FAULT=17, CHARGER_PRESENT=18, BATTERY_ADC=A0;
+static const uint8_t DRIVER_FAULT=17, CHARGER_PRESENT=18, MAST_RETRACTED_OK=19;
+static const uint8_t DRIVE_MOVING_OUTPUT=20, BATTERY_ADC=A0;
 
 static const uint32_t BAUD=115200;
 static const uint32_t COMMAND_TIMEOUT_MS=200;
@@ -16,6 +17,7 @@ static const uint32_t STATUS_PERIOD_MS=50;
 static const float WHEEL_DIAMETER_MM=100.0f;
 static const int32_t COUNTS_PER_WHEEL_REV=1320; // MEASURE and replace.
 static const float MAX_WHEEL_MM_S=500.0f;
+static const float MAX_WHEEL_MM_S_MAST_EXTENDED=180.0f;
 static const float KP=0.30f;                  // Conservative starting value; tune wheels-up.
 static const float KI=0.015f;
 static const float FEEDFORWARD_PWM_PER_MM_S=0.38f;
@@ -45,9 +47,15 @@ bool safetyLoopOk(){ return digitalRead(SAFETY_LOOP_OK)==LOW; } // isolated NC-l
 bool estopOk(){ return digitalRead(ESTOP_OK)==LOW; }
 bool driverFaulted(){ return digitalRead(DRIVER_FAULT)==LOW; }
 bool chargerConnected(){ return digitalRead(CHARGER_PRESENT)==LOW; }
+// Protocol bit 5 remains named MAST_EXTENDED for compatibility. The electrical
+// boundary is fail-safe: LOW means confirmed retracted; HIGH/open means extended
+// or unknown. Non-mast platforms must fit the documented supervised ground jumper.
+bool mastExtended(){ return digitalRead(MAST_RETRACTED_OK)==HIGH; }
+float activeWheelLimit(){ return mastExtended()?MAX_WHEEL_MM_S_MAST_EXTENDED:MAX_WHEEL_MM_S; }
 
 void stopDrive(){
   analogWrite(LEFT_PWM,0); analogWrite(RIGHT_PWM,0); digitalWrite(DRIVER_ENABLE,LOW);
+  digitalWrite(DRIVE_MOVING_OUTPUT,HIGH); // active-low interlock output to Sentinel mast controller
   leftIntegral=0; rightIntegral=0;
 }
 void setChannel(uint8_t pwmPin,uint8_t dirPin,float pwm){
@@ -66,7 +74,9 @@ bool parseCommand(char* line){
   char kind=0; unsigned long seq=0; long left=0,right=0; int enabled=0;
   if(sscanf(payload,"%c,%lu,%ld,%ld,%d",&kind,&seq,&left,&right,&enabled)!=5 || kind!='C') return false;
   if(left<-2000 || left>2000 || right<-2000 || right>2000 || (enabled!=0 && enabled!=1)) return false;
-  lastSequence=(uint32_t)seq; targetLeft=max(-MAX_WHEEL_MM_S,min(MAX_WHEEL_MM_S,(float)left)); targetRight=max(-MAX_WHEEL_MM_S,min(MAX_WHEEL_MM_S,(float)right));
+  float limit=activeWheelLimit();
+  lastSequence=(uint32_t)seq;
+  targetLeft=max(-limit,min(limit,(float)left)); targetRight=max(-limit,min(limit,(float)right));
   commandEnabled=enabled==1; lastCommandMs=millis(); return true;
 }
 void readSerial(){
@@ -84,6 +94,7 @@ void controlStep(){
   bool timedOut=now-lastCommandMs>COMMAND_TIMEOUT_MS;
   bool safe=safetyLoopOk() && estopOk() && !driverFaulted() && !chargerConnected() && !timedOut && commandEnabled;
   if(!safe){ stopDrive(); return; }
+  float limit=activeWheelLimit(); targetLeft=max(-limit,min(limit,targetLeft)); targetRight=max(-limit,min(limit,targetRight));
   int32_t left=atomicAverage(lfTicks,lrTicks), right=atomicAverage(rfTicks,rrTicks);
   int32_t dl=left-lastLeftTicks, dr=right-lastRightTicks; lastLeftTicks=left; lastRightTicks=right;
   const float mmPerTick=(PI*WHEEL_DIAMETER_MM)/(float)COUNTS_PER_WHEEL_REV;
@@ -93,11 +104,12 @@ void controlStep(){
   leftIntegral=max(-4000.0f,min(4000.0f,leftIntegral+leftError)); rightIntegral=max(-4000.0f,min(4000.0f,rightIntegral+rightError));
   float leftPwm=targetLeft*FEEDFORWARD_PWM_PER_MM_S+KP*leftError+KI*leftIntegral;
   float rightPwm=targetRight*FEEDFORWARD_PWM_PER_MM_S+KP*rightError+KI*rightIntegral;
+  digitalWrite(DRIVE_MOVING_OUTPUT,(abs(targetLeft)>50.0f || abs(targetRight)>50.0f)?LOW:HIGH);
   digitalWrite(DRIVER_ENABLE,HIGH); setChannel(LEFT_PWM,LEFT_DIR,leftPwm); setChannel(RIGHT_PWM,RIGHT_DIR,rightPwm);
 }
 void sendStatus(){
   uint32_t now=millis(); if(now-lastStatusMs<STATUS_PERIOD_MS) return; lastStatusMs=now;
-  uint16_t flags=0; if(!estopOk()) flags|=1; if(!safetyLoopOk()) flags|=2; if(now-lastCommandMs>COMMAND_TIMEOUT_MS) flags|=4; if(driverFaulted()) flags|=8; if(chargerConnected()) flags|=16;
+  uint16_t flags=0; if(!estopOk()) flags|=1; if(!safetyLoopOk()) flags|=2; if(now-lastCommandMs>COMMAND_TIMEOUT_MS) flags|=4; if(driverFaulted()) flags|=8; if(chargerConnected()) flags|=16; if(mastExtended()) flags|=32;
   int32_t left=atomicAverage(lfTicks,lrTicks), right=atomicAverage(rfTicks,rrTicks);
   uint32_t batteryMv=(uint32_t)(analogRead(BATTERY_ADC)*BATTERY_MV_PER_ADC_COUNT);
   char payload[96]; snprintf(payload,sizeof(payload),"S,%lu,%ld,%ld,%lu,%u",(unsigned long)lastSequence,(long)left,(long)right,(unsigned long)batteryMv,(unsigned)flags);
@@ -106,8 +118,8 @@ void sendStatus(){
 void setup(){
   Serial.begin(BAUD);
   pinMode(LF_A,INPUT_PULLUP); pinMode(LF_B,INPUT_PULLUP); pinMode(LR_A,INPUT_PULLUP); pinMode(LR_B,INPUT_PULLUP); pinMode(RF_A,INPUT_PULLUP); pinMode(RF_B,INPUT_PULLUP); pinMode(RR_A,INPUT_PULLUP); pinMode(RR_B,INPUT_PULLUP);
-  pinMode(LEFT_PWM,OUTPUT); pinMode(RIGHT_PWM,OUTPUT); pinMode(LEFT_DIR,OUTPUT); pinMode(RIGHT_DIR,OUTPUT); pinMode(DRIVER_ENABLE,OUTPUT);
-  pinMode(SAFETY_LOOP_OK,INPUT_PULLUP); pinMode(ESTOP_OK,INPUT_PULLUP); pinMode(DRIVER_FAULT,INPUT_PULLUP); pinMode(CHARGER_PRESENT,INPUT_PULLUP);
+  pinMode(LEFT_PWM,OUTPUT); pinMode(RIGHT_PWM,OUTPUT); pinMode(LEFT_DIR,OUTPUT); pinMode(RIGHT_DIR,OUTPUT); pinMode(DRIVER_ENABLE,OUTPUT); pinMode(DRIVE_MOVING_OUTPUT,OUTPUT);
+  pinMode(SAFETY_LOOP_OK,INPUT_PULLUP); pinMode(ESTOP_OK,INPUT_PULLUP); pinMode(DRIVER_FAULT,INPUT_PULLUP); pinMode(CHARGER_PRESENT,INPUT_PULLUP); pinMode(MAST_RETRACTED_OK,INPUT_PULLUP);
   attachInterrupt(digitalPinToInterrupt(LF_A),lfISR,CHANGE); attachInterrupt(digitalPinToInterrupt(LR_A),lrISR,CHANGE); attachInterrupt(digitalPinToInterrupt(RF_A),rfISR,CHANGE); attachInterrupt(digitalPinToInterrupt(RR_A),rrISR,CHANGE);
   stopDrive(); lastCommandMs=millis();
 }

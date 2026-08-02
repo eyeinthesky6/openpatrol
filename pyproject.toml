@@ -4,13 +4,13 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "openpatrol"
-version = "0.3.0"
+version = "0.4.0"
 description = "Mobility-agnostic local-first patrol and evidence system"
 readme = "README.md"
 requires-python = ">=3.11"
 license = {text = "Apache-2.0"}
 authors = [{name = "OpenPatrol contributors"}]
-keywords = ["robotics", "patrol", "ros2", "evidence", "simulation"]
+keywords = ["robotics", "patrol", "ros2", "evidence", "simulation", "mavlink"]
 classifiers = [
   "Development Status :: 3 - Alpha",
   "License :: OSI Approved :: Apache Software License",

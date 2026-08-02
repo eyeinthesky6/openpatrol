@@ -1,13 +1,15 @@
 # Shared fabrication and controller rules
 
-Both Rev-A platforms use the same payload grid, compute tray, lidar mast, camera bracket, safety loop, serial controller protocol and software topic contract. Structural plates may be laser-cut from 3 mm 5052 aluminium for the field build or 6 mm HDPE/birch plywood for a low-cost prototype. Covers are non-structural 2 mm ABS sheet fixed to printed corner blocks.
+All four Rev-A platforms use `openpatrol-plain-future-v1`, defined in `cad/family_style.scad` and `docs/family-design-language.md`. The ground platforms share payload grids, compute conventions, sensor treatments, safety loops and ROS topic contracts where practical. AirScout shares appearance and evidence interfaces, but keeps flight-critical control inside its qualified autopilot.
 
 Critical rules:
 
-- M4 structural fasteners; M3 electronics; slotted holes absorb normal supplier variation.
-- Keep the battery below the wheel axle and inside the wheel polygon.
-- No Dupont wires in the drive or safety harness.
-- The normally-closed E-stop loop removes motor-driver power independently of Linux and firmware.
-- The reference controller adds CRC-checked commands and a 200 ms watchdog, but is still secondary to the hardwired relay loop.
-- Export CAD with `./scripts/openpatrol export-hardware all`; inspect every DXF before fabrication.
-- Read `serial-protocol.md` and calibrate the firmware before applying motor power.
+- M4 structural fasteners and M3 electronics are the default; use slotted holes only to absorb documented supplier variation.
+- Keep ground-platform batteries low and inside the wheel polygon.
+- Keep AirScout's centre of gravity at the thrust centre and verify every substituted motor/prop/ESC combination.
+- No Dupont wires in drive, mast, flight-power or safety harnesses.
+- A normally-closed ground safety chain removes drive power independently of Linux and firmware.
+- The reference ground controller adds CRC-checked commands and a 200 ms watchdog, secondary to the hardwired relay loop.
+- Sentinel's mast uses a separate controller, hard limits, position feedback, tilt interlock and a self-locking/braked column.
+- AirScout's autopilot owns arming, attitude, motor mixing, geofence and failsafes; OpenPatrol never commands raw motors.
+- Export CAD with `./scripts/openpatrol export-hardware all` and inspect every output before fabrication.

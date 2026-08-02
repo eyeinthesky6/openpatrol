@@ -9,9 +9,9 @@ permissions:
   contents: read
 
 jobs:
-  compile-safety-controller:
+  compile-reference-controllers:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - name: Install Arduino CLI
@@ -22,6 +22,11 @@ jobs:
         run: |
           arduino-cli core update-index
           arduino-cli core install arduino:mbed_rp2040
-      - name: Compile reference safety controller
+      - name: Compile ground safety controller
         run: |
-          arduino-cli compile --warnings all --fqbn arduino:mbed_rp2040:pico hardware/common/firmware/safety_controller
+          arduino-cli compile --warnings all --fqbn arduino:mbed_rp2040:pico \
+            hardware/common/firmware/safety_controller
+      - name: Compile Sentinel mast controller
+        run: |
+          arduino-cli compile --warnings all --fqbn arduino:mbed_rp2040:pico \
+            hardware/sentinel-rev-a/firmware/mast_controller
