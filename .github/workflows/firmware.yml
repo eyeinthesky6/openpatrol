@@ -1,0 +1,27 @@
+name: firmware
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  compile-safety-controller:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Arduino CLI
+        uses: arduino/setup-arduino-cli@v2
+        with:
+          version: "1.5.0"
+      - name: Install official RP2040 core
+        run: |
+          arduino-cli core update-index
+          arduino-cli core install arduino:mbed_rp2040
+      - name: Compile reference safety controller
+        run: |
+          arduino-cli compile --warnings all --fqbn arduino:mbed_rp2040:pico hardware/common/firmware/safety_controller
