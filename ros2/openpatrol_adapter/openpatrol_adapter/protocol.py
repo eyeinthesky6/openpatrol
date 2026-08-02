@@ -4,7 +4,7 @@ Wire format is ASCII for field debugging, but every frame carries CRC16-CCITT.
 Commands: $C,seq,left_mm_s,right_mm_s,enable*CCCC\n
 Status:   $S,seq,left_ticks,right_ticks,battery_mv,flags*CCCC\n
 Flags: bit0 E-stop open, bit1 bumper/stop-loop open, bit2 command timeout,
-bit3 motor-driver fault, bit4 charger connected.
+bit3 motor-driver fault, bit4 charger connected, bit5 mast extended.
 """
 from __future__ import annotations
 
@@ -90,6 +90,10 @@ class ControllerStatus:
     @property
     def charger_connected(self) -> bool:
         return bool(self.flags & 0x10)
+
+    @property
+    def mast_extended(self) -> bool:
+        return bool(self.flags & 0x20)
 
 
 def parse_status(line: bytes | str) -> ControllerStatus:

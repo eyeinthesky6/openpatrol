@@ -1,23 +1,6 @@
-# Reference safety-controller firmware
+# Reference controllers
 
-The complete `safety_controller/` sketch targets the official Arduino RP2040 core and is compiled in GitHub Actions for a Raspberry Pi Pico. A convenience symlink at `firmware/safety_controller.ino` keeps the controller source easy to discover from the hardware root.
+- `safety_controller/safety_controller.ino` drives two differential sides, checks the normally-closed safety inputs, enforces a 200 ms command watchdog and applies the Sentinel mast-extended speed cap when that optional input is active.
+- `../../sentinel-rev-a/firmware/mast_controller/mast_controller.ino` controls the self-locking lifting column with hard limits, tilt/drive interlocks and its own 500 ms watchdog.
 
-It implements:
-
-- CRC-checked USB serial commands from the ROS bridge
-- 200 ms command watchdog
-- differential left/right velocity control using encoder feedback
-- secondary driver enable and PWM/direction outputs
-- cumulative encoder, battery and safety-state reporting
-
-Compile locally with:
-
-```bash
-arduino-cli core update-index
-arduino-cli core install arduino:mbed_rp2040
-arduino-cli compile --fqbn arduino:mbed_rp2040:pico hardware/common/firmware/safety_controller
-```
-
-Before upload, set the board-specific pin map, encoder counts per wheel revolution, battery-divider calibration, motor polarity and conservative PID/feed-forward constants. The sketch cannot certify a motor or battery and is not the sole safety device.
-
-The normally-closed E-stop/bumper/charger loop must directly de-energize the drive relay. The firmware reads an isolated feedback contact and refuses drive when it is open.
+These sketches are pin-level reference implementations. Builders must verify board voltage levels, encoder edge rate, motor-driver interface, isolated input polarity, relay/contact ratings, ADC scaling and actuator current before connection to a battery.

@@ -1,0 +1,160 @@
+{
+  "profile_version": "openpatrol.hardware/v1",
+  "id": "sentinel-rev-a",
+  "name": "OpenPatrol Sentinel Rev A",
+  "status": "engineering-release-unvalidated",
+  "mobility": {
+    "kind": "ground_wheeled"
+  },
+  "visual": {
+    "family": "openpatrol-plain-future-v1",
+    "shell": "warm off-white segmented ABS torso with broad soft radii",
+    "lower_chassis": "matte charcoal base and telescoping mast",
+    "head": "masked black sensor visor in off-white housing",
+    "status_lights": "blue vertical system light, white front, amber side markers"
+  },
+  "chassis": {
+    "length_mm": 460,
+    "width_mm": 400,
+    "height_mm": 980,
+    "structural_deck_mm": [
+      430,
+      320,
+      3
+    ],
+    "cover_material": "2 mm ABS shell on aluminium deck and extrusion frame",
+    "footprint_mm": [
+      [
+        -230,
+        -200
+      ],
+      [
+        230,
+        -200
+      ],
+      [
+        230,
+        200
+      ],
+      [
+        -230,
+        200
+      ]
+    ]
+  },
+  "drive": {
+    "type": "four_wheel_skid_steer",
+    "wheel_count": 4,
+    "wheel_diameter_mm": 125,
+    "wheel_width_mm": 45,
+    "wheelbase_mm": 280,
+    "wheel_track_mm": 360,
+    "motor_family": "12 V 80 RPM high-torque 37 mm gearmotor with quadrature encoder",
+    "motor_rpm": 80,
+    "max_speed_mps": 0.38,
+    "max_angular_rps": 0.8
+  },
+  "mast": {
+    "type": "24 V self-locking telescoping lifting column",
+    "retracted_sensor_height_mm": 980,
+    "extended_sensor_height_mm": 1500,
+    "travel_mm": 520,
+    "actuator_voltage_v": 24,
+    "head_mass_kg": 1.8,
+    "max_head_mass_kg": 2.5,
+    "max_drive_speed_extended_mps": 0.18,
+    "command_timeout_ms": 500,
+    "upper_limit_switch": true,
+    "lower_limit_switch": true,
+    "self_locking_or_braked": true,
+    "tilt_interlock": true,
+    "tilt_interlock_degrees": 8,
+    "docking_requires_retracted": true
+  },
+  "head": {
+    "housing_mm": [
+      190,
+      110,
+      85
+    ],
+    "mask": "smoked polycarbonate visor over camera, illuminator and optional pico projector",
+    "pan_range_degrees": 300,
+    "tilt_range_degrees": 40,
+    "optional_projector": "5 V pico projector, disabled from baseline BOM"
+  },
+  "mass": {
+    "target_empty_kg": 18.0,
+    "max_payload_kg": 3.0,
+    "max_total_kg": 24.0,
+    "cg_height_max_mm": 430
+  },
+  "power": {
+    "battery_chemistry": "LiFePO4",
+    "battery_nominal_v": 12.8,
+    "battery_ah": 20,
+    "usable_fraction": 0.8,
+    "average_load_w": 48,
+    "target_runtime_h": 4.0,
+    "main_fuse_a": 40,
+    "drive_fuse_a": 25,
+    "compute_fuse_a": 10,
+    "mast_fuse_a": 10,
+    "compute_converter": "12.8 V to regulated 5.1 V 6 A",
+    "mast_converter": "12.8 V to isolated 24 V 10 A or dedicated 24 V lift supply"
+  },
+  "safety": {
+    "command_timeout_ms": 200,
+    "design_deceleration_mps2": 0.8,
+    "static_margin_m": 0.12,
+    "estop_architecture": "normally_closed_hardwired_drive_cut",
+    "bumper_switch_count": 4,
+    "independent_motor_watchdog": true,
+    "charging_drive_interlock": true,
+    "guarded_service_estop": "rear recessed under a flip guard; reachable by test staff",
+    "tilt_interlock": true
+  },
+  "sensors": {
+    "lidar": "LD06/LD19-class 2D lidar on fixed base roof",
+    "masked_head": "stereo/dual camera behind replaceable smoked polycarbonate visor",
+    "encoders": "quadrature on each motor or one encoder per side minimum",
+    "bumper": "front and rear floating bars, four NC microswitches",
+    "tilt": "dual-axis hardware tilt switch plus IMU software monitor"
+  },
+  "compute": {
+    "baseline": "Raspberry Pi 5 4 GB with active cooling",
+    "drive_controller": "RP2040/ESP32-S3 safety I/O and encoder controller",
+    "mast_controller": "separate RP2040 controller with hard limit inputs",
+    "storage": "64 GB endurance microSD or NVMe"
+  },
+  "ros": {
+    "kinematics": "differential/skid steer plus independent telescoping mast",
+    "topics": {
+      "command": "/cmd_vel_safe",
+      "odometry": "/odom",
+      "scan": "/scan",
+      "battery": "/battery_state",
+      "estop": "/hardware/estop",
+      "mast_command": "/sentinel/mast/target_mm",
+      "mast_state": "/sentinel/mast/state"
+    }
+  },
+  "cost": {
+    "currency": "INR",
+    "estimated_bom_inr": 66890,
+    "target_envelope_inr": 75000,
+    "price_checked": "2026-08-02",
+    "excludes": [
+      "optional pico projector",
+      "labour",
+      "shipping",
+      "tax variation",
+      "physical certification"
+    ]
+  },
+  "files": {
+    "cad": "hardware/sentinel-rev-a/cad/sentinel.scad",
+    "bom": "hardware/sentinel-rev-a/BOM.csv",
+    "wiring": "hardware/sentinel-rev-a/wiring.md",
+    "drawings": "hardware/sentinel-rev-a/drawings.md"
+  }
+}

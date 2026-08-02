@@ -1,0 +1,28 @@
+item,description,qty,unit_cost_inr,total_inr,notes
+SN-001,3 mm 5052 aluminium base torso and mast plates laser cut,1,3000,3000,Deburr all edges
+SN-002,2020 aluminium extrusion torso frame cut set,1,1800,1800,Square within 1 mm over height
+SN-003,2 mm ABS exterior cover sheet and edge trim,1,1800,1800,Warm off-white upper shell
+SN-004,PETG/ASA head shell mask frame mast bushings and mounts,1,2000,2000,Four perimeters 40 percent infill minimum
+SN-005,12 V 80 RPM high-torque encoder gearmotor,4,1200,4800,Matched production batch
+SN-006,125x45 mm rubber wheel and hub,4,700,2800,Non-marking indoor tread preferred
+SN-007,Dual-channel protected motor driver,1,3500,3500,Rated above measured stall current
+SN-008,Raspberry Pi 5 4 GB with active cooling,1,5500,5500,Main OpenPatrol computer
+SN-009,RP2040 drive and mast controllers,2,700,1400,Separate controllers and USB ports
+SN-010,LD06/LD19-class 2D lidar,1,4500,4500,Fixed on torso roof below moving head
+SN-011,Dual 1080p UVC/CSI camera module and smoked visor,1,1500,1500,Masked head baseline
+SN-012,24 V self-locking lifting column 520 mm travel 1000 N minimum,1,9000,9000,Integral upper/lower limits preferred
+SN-013,Head pan turntable and geared servo,1,1200,1200,Software limited to 300 degrees
+SN-014,12.8 V 20 Ah LiFePO4 battery with BMS,1,7500,7500,Qualified pack with fused output
+SN-015,5.1 V 6 A protected DC-DC converter,1,1000,1000,Pi and sensors
+SN-016,12.8-to-24 V isolated boost converter 10 A,1,1300,1300,Lift supply only
+SN-017,Drive relay fuses contactors wiring glands and harness,1,1800,1800,Normally-closed safety chain
+SN-018,NC bumper switches hard limits dual-axis tilt switch and linear mast position sensor,1,1100,1100,Independent safety inputs
+SN-019,Blue white and amber LED modules plus buzzer,1,500,500,Shared family light language
+SN-020,Fasteners inserts vibration mounts and service connectors,1,1000,1000,Use captive fasteners on service panels
+SN-021,Exterior finish edge seals and protective film,1,2800,2800,Prototype-quality finish allowance
+SN-022,Guarded wireless safety pendant receiver,1,1800,1800,Supervised testing only
+SN-023,14.6 V LiFePO4 charger,1,1700,1700,Drive interlocked while connected
+SN-024,Energy chain flexible head cable and service loop,1,1800,1800,Rated for full mast travel
+SN-025,Speaker microphone and small amplifier,1,1200,1200,Optional operator audio without projector
+SN-026,Rear recessed service-stop guard and keyed service latch,1,590,590,Reachable by trained test staff
+TOTAL,,,,66890,Excludes optional pico projector labour shipping and physical certification

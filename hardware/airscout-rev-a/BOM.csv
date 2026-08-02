@@ -1,0 +1,20 @@
+item,description,qty,unit_cost_inr,total_inr,notes
+AS-001,20x20x1.5 mm carbon square-tube arm cut to 235 mm,4,650,2600,Deburr and seal cut ends
+AS-002,2 mm 5052 aluminium centre plates laser cut,2,650,1300,Lower and upper deck
+AS-003,PETG/ASA centre shell landing legs and small printed fittings,1,2500,2500,Four perimeters 40 percent infill minimum
+AS-004,2216 880-950 KV brushless motor,4,1500,6000,Use one matched production batch
+AS-005,9x4.5 matched propeller sets CW and CCW,2,650,1300,Keep one complete spare set
+AS-006,35 A 4-in-1 ESC BLHeli_32 or qualified equivalent,1,4200,4200,Current margin to be confirmed on thrust stand
+AS-007,ArduPilot/PX4-capable H743 flight controller,1,5500,5500,Independent stabilisation and failsafes
+AS-008,GNSS plus compass module,1,2200,2200,Outdoor use only where permitted
+AS-009,Optical-flow plus downward rangefinder module,1,3500,3500,Required for indoor hold testing
+AS-010,Raspberry Pi Zero 2 W or equivalent companion computer,1,2600,2600,Telemetry camera and OpenPatrol adapter
+AS-011,1080p CSI/UVC camera and damped fixed mount,1,1500,1500,No face-recognition requirement
+AS-012,MAVLink telemetry radio pair or approved Wi-Fi telemetry link,1,2600,2600,Operator link remains separate from flight stabilisation
+AS-013,4S 6000 mAh high-discharge LiPo battery,1,5200,5200,Qualified pack with cell monitoring
+AS-014,5.1 V 3 A regulated BEC,1,900,900,Companion computer supply
+AS-015,XT60 power harness fuse and low-ESR capacitor set,1,1300,1300,Include removable arming plug
+AS-016,Navigation LEDs and independent buzzer,1,480,480,Green front red rear blue system status
+AS-017,Dampers fasteners thread-lock and cable protection,1,800,800,Do not thread-lock into plastic
+AS-018,Spare carbon arm and landing-gear material,1,500,500,Crash-repair allowance
+TOTAL,,,,44980,Excludes charger labour shipping approvals and physical certification

@@ -3,6 +3,13 @@
   "id": "triscout-rev-a",
   "name": "OpenPatrol TriScout Rev A",
   "status": "engineering-release-unvalidated",
+  "mobility": {"kind": "ground_wheeled"},
+  "visual": {
+    "family": "openpatrol-plain-future-v1",
+    "shell": "warm off-white 2 mm ABS with broad soft radii",
+    "lower_chassis": "matte charcoal",
+    "status_lights": "white front, blue system, amber side markers"
+  },
   "chassis": {
     "length_mm": 390,
     "width_mm": 340,
@@ -33,6 +40,7 @@
     "battery_chemistry": "LiFePO4",
     "battery_nominal_v": 12.8,
     "battery_ah": 8,
+    "usable_fraction": 0.8,
     "average_load_w": 28,
     "target_runtime_h": 2.7,
     "main_fuse_a": 20,
@@ -73,6 +81,7 @@
   "cost": {
     "currency": "INR",
     "estimated_bom_inr": 32499,
+    "target_envelope_inr": 35000,
     "price_checked": "2026-08-02",
     "excludes": ["labour", "shipping", "tax variation", "physical certification"]
   },

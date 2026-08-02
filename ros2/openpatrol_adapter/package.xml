@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <package format="3">
   <name>openpatrol_adapter</name>
-  <version>0.2.0</version>
-  <description>Safety-conscious ROS 2 mobility and physical-controller boundary for OpenPatrol.</description>
+  <version>0.3.0</version>
+  <description>Safety-conscious ROS 2 ground, mast and MAVLink mobility boundary for OpenPatrol.</description>
   <maintainer email="maintainers@openpatrol.invalid">OpenPatrol maintainers</maintainer>
   <license>Apache-2.0</license>
   <buildtool_depend>ament_python</buildtool_depend>
@@ -13,5 +13,6 @@
   <exec_depend>nav_msgs</exec_depend>
   <exec_depend>tf2_ros</exec_depend>
   <exec_depend>python3-serial</exec_depend>
+  <exec_depend>mavros_msgs</exec_depend>
   <export><build_type>ament_python</build_type></export>
 </package>

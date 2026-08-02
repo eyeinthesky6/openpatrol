@@ -1,0 +1,18 @@
+openpatrol_airscout_state_guard:
+  ros__parameters:
+    state_topic: /mavros/state
+    allowed_modes: [GUIDED, OFFBOARD]
+    operator_enable_timeout_ms: 500
+
+openpatrol_airscout_velocity_adapter:
+  ros__parameters:
+    input_topic: /air/cmd_vel_safe
+    mavros_topic: /mavros/setpoint_velocity/cmd_vel
+    command_stale_ms: 500
+    max_horizontal_mps: 1.5
+    max_vertical_mps: 1.0
+    max_yaw_rps: 0.8
+    publish_rate_hz: 20.0
+
+# Arming, flight-mode changes, geofence and battery/command-loss actions are
+# intentionally configured in the ArduPilot/PX4 flight controller, not here.

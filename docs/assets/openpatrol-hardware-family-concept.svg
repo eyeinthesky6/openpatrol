@@ -1,0 +1,78 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" role="img" aria-labelledby="title desc">
+<title id="title">OpenPatrol Rev-A hardware family</title>
+<desc id="desc">Engineering-aligned visual of Rover One, TriScout, AirScout and Sentinel with an extended mast.</desc>
+<defs>
+  <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#eef1f3"/><stop offset="1" stop-color="#cfd4d7"/></linearGradient>
+  <linearGradient id="shell" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#f5f3ed"/><stop offset="1" stop-color="#d9d6ce"/></linearGradient>
+  <linearGradient id="dark" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#34383c"/><stop offset="1" stop-color="#17191b"/></linearGradient>
+  <filter id="shadow" x="-30%" y="-30%" width="160%" height="160%"><feDropShadow dx="0" dy="14" stdDeviation="14" flood-color="#24313a" flood-opacity=".28"/></filter>
+  <style>.label{font:600 27px Inter,Arial,sans-serif;fill:#293137}.sub{font:400 18px Inter,Arial,sans-serif;fill:#5c666d}.brand{font:600 17px Inter,Arial,sans-serif;fill:#32383c}.line{stroke:#7b858b;stroke-width:2;fill:none}.blue{fill:#2f8bff}.amber{fill:#ffb343}.glass{fill:#0f1418}.tire{fill:#17191b;stroke:#43484c;stroke-width:8}.hub{fill:#35393d;stroke:#111315;stroke-width:5}</style>
+</defs>
+<rect width="1600" height="900" fill="url(#bg)"/>
+<path d="M0 680 C360 620 1240 620 1600 680 V900 H0Z" fill="#bcc3c7"/>
+<path d="M0 690 H1600" stroke="#a9b1b6" stroke-width="3"/>
+<text x="80" y="76" class="label" font-size="40">OpenPatrol Rev-A family</text>
+<text x="80" y="110" class="sub">One restrained industrial design language · source-aligned prototype concepts</text>
+
+<!-- Rover One -->
+<g transform="translate(90 330)" filter="url(#shadow)">
+  <ellipse cx="235" cy="380" rx="230" ry="34" fill="#718089" opacity=".25"/>
+  <g><circle class="tire" cx="65" cy="305" r="70"/><circle class="hub" cx="65" cy="305" r="28"/><circle class="tire" cx="390" cy="305" r="70"/><circle class="hub" cx="390" cy="305" r="28"/></g>
+  <path d="M50 145 Q65 80 135 70 H365 Q420 78 435 135 L410 275 Q395 300 355 302 H90 Q55 295 45 266Z" fill="url(#shell)" stroke="#c3c0b9" stroke-width="4"/>
+  <path d="M48 218 H423 L410 281 Q398 302 356 304 H88 Q56 296 45 268Z" fill="url(#dark)"/>
+  <rect x="125" y="224" width="185" height="48" rx="15" class="glass"/>
+  <circle cx="168" cy="248" r="13" fill="#233a52"/><circle cx="267" cy="248" r="13" fill="#233a52"/>
+  <rect x="67" y="230" width="40" height="10" rx="5" fill="#f2f7ff"/><rect x="380" y="230" width="30" height="9" rx="5" class="amber"/>
+  <rect x="72" y="295" width="315" height="28" rx="8" fill="#282b2e"/>
+  <g transform="translate(206 45)"><rect width="82" height="55" rx="10" class="glass"/><rect y="24" width="82" height="6" class="blue"/><rect x="7" y="-8" width="68" height="10" rx="5" fill="#eeeae1"/></g>
+  <line x1="340" y1="94" x2="340" y2="28" stroke="#25282b" stroke-width="8"/><path d="M338 28 L342 28 L340 2Z" fill="#25282b"/>
+  <text x="310" y="128" class="brand">OpenPatrol</text>
+</g>
+<text x="250" y="790" class="label">Rover One</text><text x="214" y="818" class="sub">4-wheel · 5 kg payload</text>
+
+<!-- TriScout -->
+<g transform="translate(610 405)" filter="url(#shadow)">
+  <ellipse cx="175" cy="306" rx="175" ry="28" fill="#718089" opacity=".25"/>
+  <circle class="tire" cx="62" cy="245" r="59"/><circle class="hub" cx="62" cy="245" r="23"/><circle class="tire" cx="300" cy="245" r="59"/><circle class="hub" cx="300" cy="245" r="23"/><circle cx="180" cy="307" r="25" class="tire"/>
+  <path d="M30 145 Q42 82 110 62 H267 Q310 72 325 130 L312 238 Q300 260 267 265 H70 Q38 258 28 230Z" fill="url(#shell)" stroke="#c3c0b9" stroke-width="4"/>
+  <path d="M28 196 H319 L312 242 Q300 263 268 265 H68 Q39 258 28 230Z" fill="url(#dark)"/>
+  <rect x="93" y="202" width="145" height="40" rx="13" class="glass"/><circle cx="127" cy="222" r="10" fill="#233a52"/><circle cx="206" cy="222" r="10" fill="#233a52"/>
+  <rect x="40" y="206" width="35" height="9" rx="5" fill="#f2f7ff"/><rect x="281" y="207" width="25" height="8" rx="4" class="amber"/>
+  <rect x="42" y="257" width="260" height="23" rx="8" fill="#292c2f"/>
+  <g transform="translate(145 35)"><rect width="66" height="48" rx="9" class="glass"/><rect y="21" width="66" height="5" class="blue"/><rect x="5" y="-7" width="56" height="9" rx="4" fill="#eeeae1"/></g>
+  <line x1="270" y1="98" x2="270" y2="38" stroke="#25282b" stroke-width="7"/>
+  <text x="224" y="125" class="brand">OpenPatrol</text>
+</g>
+<text x="726" y="790" class="label">TriScout</text><text x="687" y="818" class="sub">2-wheel + caster · 3 kg</text>
+
+<!-- AirScout -->
+<g transform="translate(565 175)" filter="url(#shadow)">
+  <path d="M215 85 L80 20 M215 85 L350 20 M215 85 L80 150 M215 85 L350 150" stroke="#272a2e" stroke-width="24" stroke-linecap="round"/>
+  <g fill="#17191b"><circle cx="75" cy="18" r="26"/><circle cx="355" cy="18" r="26"/><circle cx="75" cy="152" r="26"/><circle cx="355" cy="152" r="26"/></g>
+  <g stroke="#22262a" stroke-width="8" opacity=".8"><line x1="0" y1="18" x2="150" y2="18"/><line x1="280" y1="18" x2="430" y2="18"/><line x1="0" y1="152" x2="150" y2="152"/><line x1="280" y1="152" x2="430" y2="152"/></g>
+  <path d="M130 54 Q148 28 185 25 H275 Q310 30 326 60 L310 112 Q296 132 264 137 H176 Q143 132 128 108Z" fill="url(#shell)" stroke="#c3c0b9" stroke-width="4"/>
+  <path d="M186 110 H274 L266 151 H193Z" fill="url(#dark)"/><rect x="205" y="120" width="46" height="31" rx="9" class="glass"/><circle cx="228" cy="136" r="9" fill="#233a52"/>
+  <rect x="98" y="135" width="24" height="8" rx="4" class="blue"/><rect x="333" y="134" width="24" height="8" rx="4" class="amber"/>
+  <text x="218" y="78" text-anchor="middle" class="brand">OpenPatrol</text>
+</g>
+<text x="740" y="345" class="label">AirScout</text><text x="697" y="373" class="sub">380 mm X quad · guarded indoor test</text>
+
+<!-- Sentinel -->
+<g transform="translate(1110 165)" filter="url(#shadow)">
+  <ellipse cx="200" cy="545" rx="190" ry="30" fill="#718089" opacity=".25"/>
+  <circle class="tire" cx="60" cy="485" r="58"/><circle class="hub" cx="60" cy="485" r="22"/><circle class="tire" cx="342" cy="485" r="58"/><circle class="hub" cx="342" cy="485" r="22"/>
+  <path d="M25 360 Q38 310 92 300 H318 Q365 307 378 350 L367 472 Q354 494 320 498 H78 Q44 492 28 463Z" fill="url(#shell)" stroke="#c3c0b9" stroke-width="4"/>
+  <path d="M28 414 H373 L367 475 Q355 498 318 500 H78 Q44 492 28 463Z" fill="url(#dark)"/>
+  <rect x="121" y="425" width="165" height="42" rx="13" class="glass"/><circle cx="157" cy="446" r="10" fill="#233a52"/><circle cx="249" cy="446" r="10" fill="#233a52"/>
+  <rect x="48" y="425" width="30" height="8" rx="4" class="amber"/><rect x="333" y="425" width="30" height="8" rx="4" class="amber"/>
+  <rect x="47" y="492" width="310" height="25" rx="8" fill="#282b2e"/>
+  <path d="M120 165 Q132 130 165 125 H255 Q288 132 298 166 L292 333 H126Z" fill="url(#shell)" stroke="#c3c0b9" stroke-width="4"/>
+  <rect x="198" y="228" width="12" height="75" rx="6" class="blue"/><text x="210" y="205" text-anchor="middle" class="brand">OpenPatrol</text>
+  <rect x="174" y="-3" width="72" height="152" rx="12" fill="#202327"/><rect x="185" y="-92" width="50" height="104" rx="10" fill="#30353a"/><rect x="194" y="-152" width="32" height="72" rx="9" fill="#3d4247"/>
+  <g transform="translate(115 -225)"><rect width="190" height="88" rx="18" fill="url(#shell)" stroke="#c3c0b9" stroke-width="4"/><rect x="15" y="17" width="160" height="54" rx="13" class="glass"/><circle cx="58" cy="44" r="13" fill="#233a52"/><circle cx="132" cy="44" r="13" fill="#233a52"/><circle cx="157" cy="59" r="4" class="blue"/></g>
+  <line x1="320" y1="315" x2="320" y2="245" stroke="#25282b" stroke-width="7"/>
+</g>
+<text x="1243" y="790" class="label">Sentinel</text><text x="1162" y="818" class="sub">masked head · 980–1500 mm mast</text>
+
+<g transform="translate(1370 150)"><path d="M0 0 V520" class="line"/><path d="M-9 8 L0 0 L9 8 M-9 512 L0 520 L9 512" class="line"/><text x="18" y="265" class="sub" transform="rotate(90 18 265)">1,500 mm extended sensor height</text></g>
+</svg>

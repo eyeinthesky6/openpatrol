@@ -19,10 +19,28 @@ def _command_exists(command: str) -> bool:
     return shutil.which(command) is not None
 
 
+def _ros_package_exists(package: str) -> bool:
+    if not _command_exists("ros2"):
+        return False
+    try:
+        return subprocess.run(
+            ["ros2", "pkg", "prefix", package],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            timeout=5,
+            check=False,
+        ).returncode == 0
+    except (OSError, subprocess.TimeoutExpired):
+        return False
+
+
 def _doctor_report() -> dict[str, Any]:
     data_root = Path(os.getenv("OPENPATROL_DATA", Path.cwd() / "runtime"))
     try:
-        free_gb = round(shutil.disk_usage(data_root.parent if data_root.parent.exists() else Path.cwd()).free / 1e9, 1)
+        free_gb = round(
+            shutil.disk_usage(data_root.parent if data_root.parent.exists() else Path.cwd()).free / 1e9,
+            1,
+        )
     except OSError:
         free_gb = None
     docker = _command_exists("docker")
@@ -38,6 +56,7 @@ def _doctor_report() -> dict[str, Any]:
             ).returncode == 0
         except (OSError, subprocess.TimeoutExpired):
             compose = False
+    ros_ready = _command_exists("ros2")
     return {
         "core": {
             "ready": sys.version_info >= (3, 11),
@@ -53,8 +72,12 @@ def _doctor_report() -> dict[str, Any]:
                 "requires": "Docker Compose v2, RTSP camera and roughly 4 GB free disk",
             },
             "ros_gazebo": {
-                "ready": _command_exists("ros2") and (_command_exists("gz") or _command_exists("ign")),
+                "ready": ros_ready and (_command_exists("gz") or _command_exists("ign")),
                 "requires": "Ubuntu 24.04, ROS 2 Jazzy, Gazebo Harmonic and roughly 15 GB free disk",
+            },
+            "mavros_air": {
+                "ready": ros_ready and _ros_package_exists("mavros"),
+                "requires": "ROS 2 Jazzy, MAVROS and a separately configured ArduPilot/PX4 flight controller",
             },
             "openscad": {
                 "ready": _command_exists("openscad"),
@@ -84,6 +107,7 @@ def _setup(args: argparse.Namespace) -> int:
         for component, prompt in (
             ("vision", "Prepare camera detection/recording with Docker + Frigate?"),
             ("ros-gazebo", "Prepare ROS 2 Jazzy + Gazebo simulation?"),
+            ("mavros-air", "Prepare the AirScout MAVROS/MAVLink boundary?"),
             ("openscad", "Prepare hardware CAD export with OpenSCAD?"),
         ):
             answer = input(f"{prompt} [y/N] ").strip().lower()
@@ -93,18 +117,20 @@ def _setup(args: argparse.Namespace) -> int:
         print("\nNothing heavy selected. Run `openpatrol` to start the bundled demo.")
         return 0
 
+    aliases = {"ros-gazebo": "ros_gazebo", "mavros-air": "mavros_air"}
     print("\nSelected optional components:")
     for component in sorted(selected):
-        if component not in report["optional"]:
+        key = aliases.get(component, component)
+        if key not in report["optional"]:
             print(f"- {component}: unknown option")
             continue
-        item = report["optional"][component]
+        item = report["optional"][key]
         state = "already available" if item["ready"] else item["requires"]
         print(f"- {component}: {state}")
     print(
         "\nOpenPatrol will not silently install system-level robotics packages. "
         "From a repository checkout, use `./scripts/openpatrol vision` for Frigate "
-        "and follow docs/setup-guide.md for ROS/Gazebo."
+        "and follow docs/setup-guide.md plus ros2/openpatrol_adapter/README.md for robotics stacks."
     )
     return 0
 
@@ -123,6 +149,7 @@ def _hardware(args: argparse.Namespace) -> int:
     else:
         for report in reports:
             print(f"{report['profile_id']}: {'PASS' if report['valid'] else 'FAIL'}")
+            print(f"  mobility_kind: {report['mobility_kind']}")
             for key, value in report["calculations"].items():
                 print(f"  {key}: {value}")
             for warning in report["warnings"]:
@@ -147,7 +174,7 @@ def build_parser() -> argparse.ArgumentParser:
         "--with",
         dest="with_component",
         action="append",
-        choices=["vision", "ros-gazebo", "openscad"],
+        choices=["vision", "ros-gazebo", "mavros-air", "openscad"],
     )
     setup.add_argument("--non-interactive", action="store_true")
     hardware = sub.add_parser("hardware", help="validate software/hardware reference profiles")
