@@ -1,42 +1,40 @@
 name: test
-
-on:
-  push:
-  pull_request:
-
-permissions:
-  contents: read
-
+on: [push, pull_request]
+permissions: {contents: read}
 jobs:
   unit-tests:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
+        with: {python-version: "3.12"}
+      - uses: actions/setup-node@v4
+        with: {node-version: "24"}
       - run: python -m pip install --upgrade pip build
       - run: python -m unittest discover -s tests -v
       - run: python -m compileall -q openpatrol tests
+      - run: node --check static/app.js
       - run: bash -n scripts/openpatrol scripts/export-hardware.sh
       - run: docker compose config --quiet
       - run: python -m openpatrol.hardware_harness --output /tmp/hardware-report.json
       - run: python -m openpatrol.cli hardware check all --json
-      - name: Build and inspect the production image
+      - name: Build and inspect production image
         run: |
           docker build -t openpatrol-ci .
           docker run --rm openpatrol-ci openpatrol-frigate --help
+          docker run --rm openpatrol-ci openpatrol-security-bridge --help
+          docker run --rm openpatrol-ci openpatrol-device-agent --help
           docker run --rm openpatrol-ci openpatrol doctor --json
-      - name: Exercise the advertised Compose startup
+      - name: Exercise advertised core startup
         run: |
           ./scripts/openpatrol up
           python - <<'PY'
-          import urllib.request
-          with urllib.request.urlopen("http://127.0.0.1:8765/api/v1/health",timeout=5) as response:
-              assert response.status == 200
+          import json, urllib.request
+          with urllib.request.urlopen('http://127.0.0.1:8765/api/v1/health',timeout=5) as r:
+              assert r.status==200 and json.load(r)['command_centre']=='ready'
           PY
           ./scripts/openpatrol down
-      - name: Build and install the wheel on a clean environment
+      - name: Build and install wheel cleanly
         run: |
           python -m build
           python -m venv /tmp/openpatrol-wheel
@@ -44,15 +42,13 @@ jobs:
           /tmp/openpatrol-wheel/bin/openpatrol doctor --json
           /tmp/openpatrol-wheel/bin/openpatrol hardware check all --json
           /tmp/openpatrol-wheel/bin/openpatrol-server >/tmp/openpatrol-wheel.log 2>&1 &
-          server_pid=$!
-          trap 'kill $server_pid 2>/dev/null || true' EXIT
+          pid=$!;trap 'kill $pid 2>/dev/null || true' EXIT
           python - <<'PY'
-          import time, urllib.request
-          for _ in range(50):
-              try:
-                  with urllib.request.urlopen("http://127.0.0.1:8765/api/v1/health") as response:
-                      assert response.status == 200
-                      break
-              except OSError: time.sleep(.1)
-          else: raise SystemExit("installed wheel server did not become healthy")
+          import time,urllib.request,json
+          for _ in range(60):
+           try:
+            with urllib.request.urlopen('http://127.0.0.1:8765/api/v1/health') as r:
+             assert json.load(r)['command_centre']=='ready';break
+           except OSError:time.sleep(.1)
+          else:raise SystemExit('installed wheel server did not become healthy')
           PY
