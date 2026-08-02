@@ -8,6 +8,8 @@ on:
 permissions:
   contents: read
 
+# Previous serial invocation retained for migration/readability tests:
+# xvfb-run -a ./scripts/export-hardware.sh all
 # The matrix validates all four packs independently. OpenSCAD 2021.01 can
 # return non-zero after writing a valid multi-body mesh, so the export script
 # validates the non-empty artifact rather than trusting the process code alone.
