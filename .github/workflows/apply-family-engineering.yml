@@ -30,6 +30,9 @@ jobs:
           cat .openpatrol/family-engineering.part-* | base64 --decode | tar -xzf - -C .
           chmod +x scripts/export-hardware.sh
           rm -rf .openpatrol
+          # Workflow files are published separately through the authorized GitHub connector.
+          git checkout HEAD -- .github/workflows/firmware.yml
+          rm -f .github/workflows/hardware-cad.yml
           git config user.name "openpatrol-engineering-bot"
           git config user.email "actions@users.noreply.github.com"
           git add -A
