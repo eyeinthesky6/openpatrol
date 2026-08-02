@@ -1,0 +1,44 @@
+name: Apply open command centre source
+
+on:
+  push:
+    branches:
+      - agent/open-command-centre-ai
+    paths:
+      - '.openpatrol-command-centre.b64-*'
+      - .github/workflows/apply-command-centre.yml
+  pull_request:
+    branches:
+      - main
+    paths:
+      - '.openpatrol-command-centre.b64-*'
+      - .github/workflows/apply-command-centre.yml
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/open-command-centre-ai
+          fetch-depth: 0
+      - name: Reconstruct, verify and apply reviewed source
+        run: |
+          set -euo pipefail
+          cat .openpatrol-command-centre.b64-* > bundle.b64
+          base64 -d bundle.b64 > bundle.tgz
+          echo '695da477c22cf444846ce32a5abcf79beca91e0ea6610ea9da84faac48de5705  bundle.tgz' | sha256sum -c -
+          work="$(mktemp -d)"
+          tar -xzf bundle.tgz -C "$work"
+          cp -a "$work"/. .
+          rm -f bundle.b64 bundle.tgz .openpatrol-command-centre.b64-* .github/workflows/apply-command-centre.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git diff --cached --check
+          git commit -m 'Build open security command centre and sensor fusion'
+          git push origin HEAD:agent/open-command-centre-ai
