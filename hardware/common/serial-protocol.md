@@ -1,6 +1,6 @@
 # Safety-controller serial protocol
 
-The Pi and reference RP2040/ESP32 controller communicate over USB serial at 115200 baud. This is a convenience and observability link—not the physical safety chain. E-stop, bumper loop, charger interlock and drive relay remain hardwired.
+The Pi and reference RP2040/ESP32 controller communicate over USB serial at 115200 baud. This is a convenience and observability link—not the physical safety chain. E-stop, bumper loop, charger interlock and drive relay remain a hardwired, normally-closed chain.
 
 ## Frames
 
