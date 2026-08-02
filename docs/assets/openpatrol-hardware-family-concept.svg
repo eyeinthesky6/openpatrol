@@ -5,7 +5,6 @@
   <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#eef1f3"/><stop offset="1" stop-color="#cfd4d7"/></linearGradient>
   <linearGradient id="shell" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#f5f3ed"/><stop offset="1" stop-color="#d9d6ce"/></linearGradient>
   <linearGradient id="dark" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#34383c"/><stop offset="1" stop-color="#17191b"/></linearGradient>
-  <filter id="shadow" x="-30%" y="-30%" width="160%" height="160%"><feDropShadow dx="0" dy="14" stdDeviation="14" flood-color="#24313a" flood-opacity=".28"/></filter>
   <style>.label{font:600 27px Inter,Arial,sans-serif;fill:#293137}.sub{font:400 18px Inter,Arial,sans-serif;fill:#5c666d}.brand{font:600 17px Inter,Arial,sans-serif;fill:#32383c}.line{stroke:#7b858b;stroke-width:2;fill:none}.blue{fill:#2f8bff}.amber{fill:#ffb343}.glass{fill:#0f1418}.tire{fill:#17191b;stroke:#43484c;stroke-width:8}.hub{fill:#35393d;stroke:#111315;stroke-width:5}</style>
 </defs>
 <rect width="1600" height="900" fill="url(#bg)"/>
@@ -15,7 +14,7 @@
 <text x="80" y="110" class="sub">One restrained industrial design language · source-aligned prototype concepts</text>
 
 <!-- Rover One -->
-<g transform="translate(90 330)" filter="url(#shadow)">
+<g transform="translate(90 330)">
   <ellipse cx="235" cy="380" rx="230" ry="34" fill="#718089" opacity=".25"/>
   <g><circle class="tire" cx="65" cy="305" r="70"/><circle class="hub" cx="65" cy="305" r="28"/><circle class="tire" cx="390" cy="305" r="70"/><circle class="hub" cx="390" cy="305" r="28"/></g>
   <path d="M50 145 Q65 80 135 70 H365 Q420 78 435 135 L410 275 Q395 300 355 302 H90 Q55 295 45 266Z" fill="url(#shell)" stroke="#c3c0b9" stroke-width="4"/>
@@ -31,7 +30,7 @@
 <text x="250" y="790" class="label">Rover One</text><text x="214" y="818" class="sub">4-wheel · 5 kg payload</text>
 
 <!-- TriScout -->
-<g transform="translate(610 405)" filter="url(#shadow)">
+<g transform="translate(610 405)">
   <ellipse cx="175" cy="306" rx="175" ry="28" fill="#718089" opacity=".25"/>
   <circle class="tire" cx="62" cy="245" r="59"/><circle class="hub" cx="62" cy="245" r="23"/><circle class="tire" cx="300" cy="245" r="59"/><circle class="hub" cx="300" cy="245" r="23"/><circle cx="180" cy="307" r="25" class="tire"/>
   <path d="M30 145 Q42 82 110 62 H267 Q310 72 325 130 L312 238 Q300 260 267 265 H70 Q38 258 28 230Z" fill="url(#shell)" stroke="#c3c0b9" stroke-width="4"/>
@@ -46,7 +45,7 @@
 <text x="726" y="790" class="label">TriScout</text><text x="687" y="818" class="sub">2-wheel + caster · 3 kg</text>
 
 <!-- AirScout -->
-<g transform="translate(565 175)" filter="url(#shadow)">
+<g transform="translate(565 175)">
   <path d="M215 85 L80 20 M215 85 L350 20 M215 85 L80 150 M215 85 L350 150" stroke="#272a2e" stroke-width="24" stroke-linecap="round"/>
   <g fill="#17191b"><circle cx="75" cy="18" r="26"/><circle cx="355" cy="18" r="26"/><circle cx="75" cy="152" r="26"/><circle cx="355" cy="152" r="26"/></g>
   <g stroke="#22262a" stroke-width="8" opacity=".8"><line x1="0" y1="18" x2="150" y2="18"/><line x1="280" y1="18" x2="430" y2="18"/><line x1="0" y1="152" x2="150" y2="152"/><line x1="280" y1="152" x2="430" y2="152"/></g>
@@ -55,10 +54,10 @@
   <rect x="98" y="135" width="24" height="8" rx="4" class="blue"/><rect x="333" y="134" width="24" height="8" rx="4" class="amber"/>
   <text x="218" y="78" text-anchor="middle" class="brand">OpenPatrol</text>
 </g>
-<text x="740" y="345" class="label">AirScout</text><text x="697" y="373" class="sub">380 mm X quad · guarded indoor test</text>
+<text x="740" y="350" class="label">AirScout</text><text x="697" y="378" class="sub">380 mm X quad · guarded indoor test</text>
 
 <!-- Sentinel -->
-<g transform="translate(1110 165)" filter="url(#shadow)">
+<g transform="translate(1120 205) scale(.88)">
   <ellipse cx="200" cy="545" rx="190" ry="30" fill="#718089" opacity=".25"/>
   <circle class="tire" cx="60" cy="485" r="58"/><circle class="hub" cx="60" cy="485" r="22"/><circle class="tire" cx="342" cy="485" r="58"/><circle class="hub" cx="342" cy="485" r="22"/>
   <path d="M25 360 Q38 310 92 300 H318 Q365 307 378 350 L367 472 Q354 494 320 498 H78 Q44 492 28 463Z" fill="url(#shell)" stroke="#c3c0b9" stroke-width="4"/>
@@ -74,5 +73,5 @@
 </g>
 <text x="1243" y="790" class="label">Sentinel</text><text x="1162" y="818" class="sub">masked head · 980–1500 mm mast</text>
 
-<g transform="translate(1370 150)"><path d="M0 0 V520" class="line"/><path d="M-9 8 L0 0 L9 8 M-9 512 L0 520 L9 512" class="line"/><text x="18" y="265" class="sub" transform="rotate(90 18 265)">1,500 mm extended sensor height</text></g>
+
 </svg>
