@@ -1,0 +1,40 @@
+name: apply-family-engineering-overlay
+
+on:
+  push:
+    branches:
+      - agent/complete-airscout-sentinel-family
+    paths:
+      - .openpatrol/family-engineering.tar.gz.b64
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    if: github.ref_name == 'agent/complete-airscout-sentinel-family'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+          fetch-depth: 0
+      - name: Apply reviewed engineering overlay
+        shell: bash
+        run: |
+          set -euo pipefail
+          archive=.openpatrol/family-engineering.tar.gz.b64
+          if [[ ! -f "$archive" ]]; then
+            echo "Overlay already applied."
+            exit 0
+          fi
+          base64 --decode "$archive" | tar -xzf - -C .
+          chmod +x scripts/export-hardware.sh
+          rm -f "$archive"
+          rmdir .openpatrol 2>/dev/null || true
+          git config user.name "openpatrol-engineering-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add -A
+          git commit -m "Complete AirScout and Sentinel Rev-A engineering family"
+          git push origin "HEAD:${GITHUB_REF_NAME}"
