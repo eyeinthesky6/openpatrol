@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="700" viewBox="0 0 1200 700" role="img" aria-labelledby="title desc">
+  <title id="title">AirScout Rev-A dimensional envelope</title>
+  <desc id="desc">Top-view engineering drawing derived from the AirScout Rev-A locked drawing schedule.</desc>
+  <defs>
+    <pattern id="grid" width="25" height="25" patternUnits="userSpaceOnUse"><path d="M25 0H0V25" fill="none" stroke="#dbe7f8"/></pattern>
+    <marker id="arrow" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto"><path d="M8 4 0 0v8Z" fill="#2267c9"/></marker>
+    <style>.part{fill:#f5f3ed;stroke:#1d2630;stroke-width:4}.dark{fill:#252a30;stroke:#111820;stroke-width:4}.dim{fill:none;stroke:#2267c9;stroke-width:2;marker-start:url(#arrow);marker-end:url(#arrow)}.ext{stroke:#78a8e8;stroke-width:1.5;stroke-dasharray:7 6}.label{font:600 20px Inter,Arial,sans-serif;fill:#16202a}.note{font:16px Inter,Arial,sans-serif;fill:#42617f}.datum{fill:#ff641e}</style>
+  </defs>
+  <rect width="1200" height="700" fill="#fbfdff"/><rect width="1200" height="700" fill="url(#grid)"/>
+  <text x="55" y="55" class="label" font-size="28">AIRSCOUT REV-A · TOP ENVELOPE</text><text x="55" y="85" class="note">All dimensions millimetres · verify exported DXF/STL before fabrication</text>
+  <g transform="translate(600 355)">
+    <path d="M0 0-134-134M0 0 134-134M0 0-134 134M0 0 134 134" stroke="#252a30" stroke-width="28" stroke-linecap="round"/>
+    <g class="dark"><circle cx="-134" cy="-134" r="28"/><circle cx="134" cy="-134" r="28"/><circle cx="-134" cy="134" r="28"/><circle cx="134" cy="134" r="28"/></g>
+    <g fill="none" stroke="#566370" stroke-width="3" stroke-dasharray="10 7"><circle cx="-134" cy="-134" r="114.3"/><circle cx="134" cy="-134" r="114.3"/><circle cx="-134" cy="134" r="114.3"/><circle cx="134" cy="134" r="114.3"/></g>
+    <rect x="-85" y="-75" width="170" height="150" rx="12" class="part"/><rect x="-77.5" y="-67.5" width="155" height="135" rx="9" fill="none" stroke="#2267c9" stroke-width="2"/>
+    <circle r="7" class="datum"/><text x="12" y="-12" class="note">B/C</text>
+  </g>
+  <path d="M466 221 356 111M734 489 844 599" class="ext"/><path d="M356 111 844 599" class="dim"/><text x="620" y="545" class="label" transform="rotate(45 620 545)">380 ±1 diagonal</text>
+  <path d="M515 280V165M685 280V165" class="ext"/><path d="M515 180H685" class="dim"/><text x="600" y="165" text-anchor="middle" class="label">170 plate</text>
+  <path d="M490 600H710" class="dim"/><text x="600" y="632" text-anchor="middle" class="note">Propeller Ø228.6 · tip gap ≥35 (minimum 30)</text>
+  <text x="55" y="650" class="note">SOURCE: hardware/airscout-rev-a/drawings.md · CAD: hardware/airscout-rev-a/cad/airscout.scad</text>
+</svg>
