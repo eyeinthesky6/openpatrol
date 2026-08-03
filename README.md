@@ -92,13 +92,30 @@ OpenPatrol creates **incident candidates**, not guaranteed detections. Camera an
 
 Prototype sourcing estimates exclude labour, tax, validation and connected third-party equipment.
 
-### Drawing-controlled concepts
+### Product visualisations and engineering drawings
 
-| Sentinel Rev-A mast envelope | AirScout Rev-A flight envelope |
-|---|---|
-| [![Sentinel Rev-A mast envelope](docs/assets/sentinel-mast-envelope.svg)](hardware/sentinel-rev-a/drawings.md) | [![AirScout Rev-A flight envelope](docs/assets/airscout-envelope.svg)](hardware/airscout-rev-a/drawings.md) |
+The 3D hero and warehouse images above communicate the intended Rev-A product family and operating context. They are digital prototype visualisations—not photographs, fabrication drawings or evidence of a physical build.
 
-The hero and warehouse images communicate the product direction. Controlled exterior features and critical dimensions are defined in [`docs/family-design-language.md`](docs/family-design-language.md), the platform OpenSCAD sources and each locked drawing schedule. The source-aligned family line diagram remains available at [`docs/assets/openpatrol-hardware-family-concept.svg`](docs/assets/openpatrol-hardware-family-concept.svg) for technical comparison rather than use as the public hero.
+#### Sentinel Rev-A — mast envelope
+
+[![Sentinel Rev-A orthographic mast drawing showing retracted and extended heights, travel and safety interlocks](docs/assets/sentinel-mast-envelope.svg)](hardware/sentinel-rev-a/drawings.md)
+
+This drawing traces to the [Sentinel locked drawing schedule](hardware/sentinel-rev-a/drawings.md) and [parametric OpenSCAD assembly](hardware/sentinel-rev-a/cad/sentinel.scad). Controlled values include the 460 × 400 mm base envelope, 980–1,500 mm sensor-head height, 520 mm mast travel and mast-dependent motion interlocks.
+
+#### AirScout Rev-A — top envelope
+
+[![AirScout Rev-A top-view dimensional drawing showing motor diagonal, centre plates and propeller envelope](docs/assets/airscout-envelope.svg)](hardware/airscout-rev-a/drawings.md)
+
+This drawing traces to the [AirScout locked drawing schedule](hardware/airscout-rev-a/drawings.md) and [parametric OpenSCAD assembly](hardware/airscout-rev-a/cad/airscout.scad). Controlled values include the 380 mm motor diagonal, centre-plate dimensions, 228.6 mm propeller diameter and minimum prop-tip clearance.
+
+| Visual type | Purpose | Engineering authority |
+|---|---|---|
+| 3D product visualisations | communicate product identity and intended operating context | not dimensional authority |
+| Orthographic envelope drawings | expose critical dimensions and safety envelopes | linked locked drawing schedule |
+| OpenSCAD sources | define editable parametric geometry | fabrication source, checked against schedule |
+| Physical build report | validate tolerances and performance | required in the future physical-validation phase |
+
+Controlled exterior features are defined in [`docs/family-design-language.md`](docs/family-design-language.md). The source-aligned family line diagram remains available at [`docs/assets/openpatrol-hardware-family-concept.svg`](docs/assets/openpatrol-hardware-family-concept.svg) for technical comparison.
 
 ## Validate the repository
 
