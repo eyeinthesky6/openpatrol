@@ -31,10 +31,6 @@ Security estates are usually split across camera software, alarm panels, access 
 - **Extend to devices.** Route bounded commands to speakers, strobes, sirens, sensor hubs, ROS ground platforms and an autopilot-owned drone boundary.
 - **Inspect the machine.** Hardware sources, safety assumptions, wiring, BOMs and drawing schedules live beside the software.
 
-<p align="center"><img src="docs/assets/openpatrol-warehouse-concept.png" width="100%" alt="OpenPatrol ground robot and drone operating together in a warehouse"></p>
-
-<p align="center"><em>AI-generated operating concept showing the intended combined workflow—not field-test evidence.</em></p>
-
 ## What is implemented
 
 | Layer | Included |
@@ -94,7 +90,7 @@ Prototype sourcing estimates exclude labour, tax, validation and connected third
 
 ### Product visualisations and engineering drawings
 
-The 3D hero and warehouse images above communicate the intended Rev-A product family and operating context. They are digital prototype visualisations—not photographs, fabrication drawings or evidence of a physical build.
+The 3D family render above communicates the intended Rev-A product family. It is a digital prototype visualisation—not a photograph, fabrication drawing or evidence of a physical build.
 
 #### Sentinel Rev-A — mast envelope
 
@@ -110,7 +106,7 @@ This drawing traces to the [AirScout locked drawing schedule](hardware/airscout-
 
 | Visual type | Purpose | Engineering authority |
 |---|---|---|
-| 3D product visualisations | communicate product identity and intended operating context | not dimensional authority |
+| 3D family visualisation | communicate product identity | not dimensional authority |
 | Orthographic envelope drawings | expose critical dimensions and safety envelopes | linked locked drawing schedule |
 | OpenSCAD sources | define editable parametric geometry | fabrication source, checked against schedule |
 | Physical build report | validate tolerances and performance | required in the future physical-validation phase |
