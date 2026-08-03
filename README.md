@@ -1,4 +1,4 @@
-<p align="center"><img src="docs/assets/openpatrol-hardware-family-concept.svg" width="100%" alt="OpenPatrol Rover One, TriScout, AirScout and Sentinel Rev-A hardware family"></p>
+<p align="center"><img src="docs/assets/openpatrol-hardware-family-concept.png" width="100%" alt="OpenPatrol robot and drone product family concept"></p>
 
 <h1 align="center">OpenPatrol</h1>
 <p align="center"><strong>Open security. Human control.</strong></p>
@@ -19,7 +19,7 @@
 </p>
 
 > [!IMPORTANT]
-> **Completed digital engineering prototype (Rev-A), not field-certified hardware.** This is a ready-to-test prototype source package: the software, simulation, firmware interfaces, parametric CAD, BOMs, wiring guidance and engineering specifications are ready for inspection and virtual testing. Every hardware design remains physically unvalidated; fabrication, site calibration, endurance testing and certification are a future physical-validation phase.
+> **Completed digital engineering prototype (Rev-A), not field-certified hardware.** The polished hero image is an AI-generated product concept, not a fabrication drawing or field photograph. The software, simulation, firmware interfaces, parametric CAD, BOMs, wiring guidance and engineering specifications are ready for inspection and virtual testing. Every hardware design remains physically unvalidated; fabrication, site calibration, endurance testing and certification are a future physical-validation phase. The CAD and locked drawing schedules are the engineering source of truth.
 
 ## Why OpenPatrol
 
@@ -30,6 +30,10 @@ Security estates are usually split across camera software, alarm panels, access 
 - **Keep a person accountable.** Operators review, label, announce, talk back, dispatch and preserve evidence with an audit trail.
 - **Extend to devices.** Route bounded commands to speakers, strobes, sirens, sensor hubs, ROS ground platforms and an autopilot-owned drone boundary.
 - **Inspect the machine.** Hardware sources, safety assumptions, wiring, BOMs and drawing schedules live beside the software.
+
+<p align="center"><img src="docs/assets/openpatrol-warehouse-concept.png" width="100%" alt="OpenPatrol ground robot and drone operating together in a warehouse"></p>
+
+<p align="center"><em>AI-generated operating concept showing the intended combined workflow—not field-test evidence.</em></p>
 
 ## What is implemented
 
@@ -94,7 +98,7 @@ Prototype sourcing estimates exclude labour, tax, validation and connected third
 |---|---|
 | [![Sentinel Rev-A mast envelope](docs/assets/sentinel-mast-envelope.svg)](hardware/sentinel-rev-a/drawings.md) | [![AirScout Rev-A flight envelope](docs/assets/airscout-envelope.svg)](hardware/airscout-rev-a/drawings.md) |
 
-The family render is a **source-aligned concept**, not a photograph. Controlled exterior features and critical dimensions are defined in [`docs/family-design-language.md`](docs/family-design-language.md), the platform OpenSCAD sources and each locked drawing schedule.
+The hero and warehouse images communicate the product direction. Controlled exterior features and critical dimensions are defined in [`docs/family-design-language.md`](docs/family-design-language.md), the platform OpenSCAD sources and each locked drawing schedule. The source-aligned family line diagram remains available at [`docs/assets/openpatrol-hardware-family-concept.svg`](docs/assets/openpatrol-hardware-family-concept.svg) for technical comparison rather than use as the public hero.
 
 ## Validate the repository
 
