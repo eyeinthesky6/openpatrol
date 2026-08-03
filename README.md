@@ -1,4 +1,4 @@
-<p align="center"><img src="docs/assets/openpatrol-hardware-family-concept.png" width="100%" alt="OpenPatrol robot and drone product family concept"></p>
+<p align="center"><img src="docs/assets/openpatrol-family-hero.jpg" width="100%" alt="OpenPatrol Rover One, TriScout, AirScout and Sentinel digital prototype family"></p>
 
 <h1 align="center">OpenPatrol</h1>
 <p align="center"><strong>Open security. Human control.</strong></p>
@@ -19,7 +19,7 @@
 </p>
 
 > [!IMPORTANT]
-> **Completed digital engineering prototype (Rev-A), not field-certified hardware.** The polished hero image is an AI-generated product concept, not a fabrication drawing or field photograph. The software, simulation, firmware interfaces, parametric CAD, BOMs, wiring guidance and engineering specifications are ready for inspection and virtual testing. Every hardware design remains physically unvalidated; fabrication, site calibration, endurance testing and certification are a future physical-validation phase. The CAD and locked drawing schedules are the engineering source of truth.
+> **Completed digital engineering prototype (Rev-A), not field-certified hardware.** This is a ready-to-test prototype source package. The polished hero image is an AI-generated product concept, not a fabrication drawing or field photograph. The software, simulation, firmware interfaces, parametric CAD, BOMs, wiring guidance and engineering specifications are ready for inspection and virtual testing. Every hardware design remains physically unvalidated; fabrication, site calibration, endurance testing and certification are a future physical-validation phase. The CAD and locked drawing schedules are the engineering source of truth.
 
 ## Why OpenPatrol
 
@@ -76,6 +76,34 @@ flowchart LR
 
 OpenPatrol creates **incident candidates**, not guaranteed detections. Camera analytics must be calibrated and measured for each site. Certified fire, pool, medical, access-control and other life-safety systems remain independently operational.
 
+## Command centre
+
+The included local dashboard unifies cameras, incident review, patrol state, device response, announcements and recorded talkback. These demo captures reproduce the implemented interface and the included `Warehouse 7 — Night Patrol` scenario; camera panes are placeholders until a real RTSP/ONVIF/Frigate source is connected.
+
+[![OpenPatrol command centre security overview](docs/assets/command-centre-overview.svg)](docs/command-centre.md)
+
+| Human incident review | Audited announcements and talkback |
+|---|---|
+| [![OpenPatrol incident evidence review](docs/assets/command-centre-incident-review.svg)](docs/operator-guide.md) | [![OpenPatrol device announcement and talkback console](docs/assets/command-centre-talkback.svg)](docs/command-centre.md) |
+
+## Hardware family
+
+The visual family uses a shared warm-white shell, dark lower protection, restrained status lighting and consistent sensor language. These are AI-generated **Rev-A product visualisations**, not photographs or dimensional authority.
+
+| Rover One, TriScout, AirScout and Sentinel | Alternate family view with Sentinel sensor head |
+|---|---|
+| ![OpenPatrol four-platform product family](docs/assets/openpatrol-family-hero.jpg) | ![OpenPatrol product family alternate sensor-head view](docs/assets/openpatrol-family-sensor-head.jpg) |
+
+| Sentinel — extended mast | Sentinel — sensor-head study | AirScout — flight study |
+|---|---|---|
+| ![Sentinel digital prototype with extended telescoping mast](docs/assets/sentinel-extended-mast.jpg) | ![Sentinel digital prototype sensor-head study](docs/assets/sentinel-sensor-head.jpg) | ![AirScout digital prototype in flight](docs/assets/airscout-flight.jpg) |
+
+### Warehouse operations scene
+
+![OpenPatrol Rover One, Sentinel and AirScout operating together in a warehouse](docs/assets/openpatrol-warehouse-operation.jpg)
+
+The warehouse scene illustrates coordinated operation only. Navigation performance, flight endurance, detection accuracy and physical clearances must be established through the future fabrication and pilot-validation phase.
+
 ## Engineering reference builds
 
 | Platform | Prototype role | Estimated BOM |
@@ -90,7 +118,7 @@ Prototype sourcing estimates exclude labour, tax, validation and connected third
 
 ### Product visualisations and engineering drawings
 
-The 3D family render above communicates the intended Rev-A product family. It is a digital prototype visualisation—not a photograph, fabrication drawing or evidence of a physical build.
+The product renders above communicate the intended Rev-A family. They are digital prototype visualisations—not photographs, fabrication drawings or evidence of a physical build.
 
 #### Sentinel Rev-A — mast envelope
 
