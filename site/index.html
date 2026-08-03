@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="OpenPatrol is an open, local-first command centre for cameras, security systems, patrol robots and drones.">
+  <meta property="og:title" content="OpenPatrol — Open security. Human control.">
+  <meta property="og:description" content="A completed digital engineering prototype for open, local-first patrol and incident operations.">
+  <title>OpenPatrol — Open security. Human control.</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="nav"><a class="brand" href="#top"><span class="mark">OP</span>OpenPatrol</a><nav><a href="#capabilities">Capabilities</a><a href="#engineering">Engineering</a><a href="#architecture">Architecture</a><a href="#start">Quick start</a></nav><a class="nav-github" href="https://github.com/eyeinthesky6/openpatrol">GitHub ↗</a></header>
+  <main id="top">
+    <section class="hero wrap">
+      <div class="hero-copy"><h1>Open security.<br><span>Human control.</span></h1><p>One local-first command centre for existing cameras, security systems, patrol robots and drones—with evidence, alerts and consequential decisions kept under operator control.</p><div class="actions"><a class="button primary" href="https://github.com/eyeinthesky6/openpatrol">View on GitHub</a><a class="button" href="https://github.com/eyeinthesky6/openpatrol/tree/main/docs">Engineering docs</a></div><div class="status"><strong>Alpha</strong><span>Completed digital engineering prototype · Rev-A</span></div></div>
+      <div class="hero-visual"><img src="assets/openpatrol-hardware-family-concept.svg" alt="CAD-aligned concept of the OpenPatrol Rev-A hardware family"><span class="measure m1">REF A</span><span class="measure m2">SCALE 1:1</span></div>
+    </section>
+    <section id="capabilities" class="band"><div class="wrap"><h2>One incident workflow. Open at every edge.</h2><div class="capabilities"><article><b>01</b><h3>Command centre</h3><p>Camera wall, device inventory, patrol state, incident review, evidence receipts and an operator audit trail.</p></article><article><b>02</b><h3>Open integrations</h3><p>RTSP, ONVIF-compatible paths, Frigate, MQTT, NDJSON, alarm/access systems and a generic event API.</p></article><article><b>03</b><h3>Human-reviewed alerts</h3><p>Fuse weak observations into incident candidates, then route browser, audio, strobe, siren and talkback actions.</p></article><article><b>04</b><h3>Robot + drone simulation</h3><p>ROS 2 Jazzy, Nav2 and Gazebo workflows with bounded physical adapters for ground platforms and AirScout.</p></article></div></div></section>
+    <section id="engineering" class="wrap engineering"><div class="section-head"><div><h2>Engineering you can inspect</h2><p>The public visuals use the same geometry and controlled design language as the Rev-A OpenSCAD sources and locked drawing schedules.</p></div><a href="https://github.com/eyeinthesky6/openpatrol/tree/main/hardware">Browse hardware packs →</a></div><div class="drawings"><figure><img src="assets/sentinel-mast-envelope.svg" alt="Sentinel Rev-A mast dimensional envelope"><figcaption><strong>Sentinel Rev-A</strong><span>460 × 400 mm base · 980–1,500 mm sensor head</span></figcaption></figure><figure><img src="assets/airscout-envelope.svg" alt="AirScout Rev-A dimensional envelope"><figcaption><strong>AirScout Rev-A</strong><span>380 mm motor diagonal · 9-inch propeller envelope</span></figcaption></figure></div></section>
+    <section id="architecture" class="architecture"><div class="wrap"><h2>From signal to accountable action</h2><div class="flow"><div><strong>Sense</strong><span>Cameras · alarms · access · fixed sensors · robots</span></div><i>→</i><div><strong>Ingest</strong><span>Normalize open event contracts</span></div><i>→</i><div><strong>Fuse</strong><span>Create conservative incident candidates</span></div><i>→</i><div><strong>Review + act</strong><span>Operator decision · device alert · evidence audit</span></div></div></div></section>
+    <section class="wrap platforms"><div class="section-head"><div><h2>Five reference builds</h2><p>Prototype sourcing estimates exclude labour, tax, validation and third-party equipment.</p></div></div><div class="platform-list"><div><strong>Rover One</strong><span>4-wheel ground patrol</span><em>₹36,891</em></div><div><strong>TriScout</strong><span>Low-cost smooth-floor rover</span><em>₹32,499</em></div><div><strong>AirScout</strong><span>Supervised aerial inspection</span><em>₹44,980</em></div><div><strong>Sentinel</strong><span>Elevated sensing + telepresence</span><em>₹66,890</em></div><div><strong>Sensor Hub</strong><span>8 zones + AV alert outputs</span><em>₹8,700</em></div></div></section>
+    <section id="start" class="start"><div class="wrap start-grid"><div><h2>Run the lightweight core</h2><p>Python 3.11+. The command-centre demo has no third-party runtime dependency.</p><a href="https://github.com/eyeinthesky6/openpatrol/blob/main/docs/setup-guide.md">Full setup guide →</a></div><pre><code><span># install</span>
+pipx install git+https://github.com/eyeinthesky6/openpatrol.git
+
+<span># launch</span>
+openpatrol
+
+<span># open http://127.0.0.1:8765</span></code></pre></div></section>
+    <section class="wrap boundary"><div><h2>What “complete” means here</h2><p>Software, simulation, firmware interfaces, parametric CAD, BOMs, wiring guidance and Rev-A engineering specifications are complete enough for a digital prototype release. Fabrication, field calibration, endurance testing and certification remain a future physical-validation phase.</p></div><div class="boundary-note"><strong>Safety boundary</strong><p>OpenPatrol creates incident candidates; it does not guarantee detection. Certified fire, pool, medical and access systems remain independently operational.</p></div></section>
+  </main>
+  <footer><div class="wrap"><div><strong>OpenPatrol</strong><span>Open security. Human control.</span></div><div><a href="https://github.com/eyeinthesky6/openpatrol/blob/main/CONTRIBUTING.md">Contribute</a><a href="https://github.com/eyeinthesky6/openpatrol/issues">Issues</a><a href="https://github.com/eyeinthesky6/openpatrol/blob/main/SECURITY.md">Security</a><a href="https://github.com/eyeinthesky6/openpatrol/blob/main/LICENSE">Apache-2.0</a></div></div></footer>
+</body>
+</html>
